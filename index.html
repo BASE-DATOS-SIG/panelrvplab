@@ -2314,24 +2314,46 @@ table .codigo {
 </div>
 
 <script>
-    // ========== CONFIGURACIÓN DE CLOUDINARY ==========
-    const CLOUDINARY_CONFIG = {
-        cloudName: 'z11uufz3',
-        uploadPreset: 'lab_uploads',
-        folderBase: 'SIG_LABORATORIO'
-    };
 
-    // ========== CONFIGURACIÓN DE GOOGLE DRIVE (ACTUALIZADA CON PKCE) ==========
-    // ⚠️ IMPORTANTE: Reemplaza este valor por el Client ID que creaste en Google Cloud Console
-    const DRIVE_CONFIG = {
-        clientId: '549801807409-b3f34iagtn0br4q58s5439hlqnhtt518.apps.googleusercontent.com',
-        clientSecret: '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',
-        scope: 'https://www.googleapis.com/auth/drive.file',
-        discoveryDocs: ['https://www.googleapis.com/discovery/v1/apis/drive/v3/rest'],
-        redirectUri: 'http://127.0.0.1:5500/SIG-LAB-3.html',
-    };
+// ========== FUNCIÓN PARA DETECTAR EL ENTORNO ==========
+function getBaseUrl() {
+    const url = window.location.href;
+    const cleanUrl = url.split('?')[0];
+    return cleanUrl.endsWith('/') ? cleanUrl.slice(0, -1) : cleanUrl;
+}
 
-    const TEST_USER = 'sigredvitalpaipa@gmail.com';
+function isDevelopment() {
+    const url = window.location.href;
+    return url.includes('127.0.0.1') || url.includes('localhost');
+}
+
+function isProduction() {
+    const url = window.location.href;
+    return url.includes('github.io') || url.includes('vercel.app') || url.includes('netlify.app');
+}
+
+// ========== CONFIGURACIÓN DE CLOUDINARY ==========
+const CLOUDINARY_CONFIG = {
+    cloudName: 'z11uufz3',
+    uploadPreset: 'lab_uploads',
+    folderBase: 'SIG_LABORATORIO'
+};
+
+// ========== CONFIGURACIÓN DE GOOGLE DRIVE (MULTI-ENTORNO) ==========
+const DRIVE_CONFIG = {
+    clientId: '549801807409-b3f34iagtn0br4q58s5439hlqnhtt518.apps.googleusercontent.com',
+    clientSecret: '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',
+    scope: 'https://www.googleapis.com/auth/drive.file',
+    discoveryDocs: ['https://www.googleapis.com/discovery/v1/apis/drive/v3/rest'],
+    // ✅ DETECCIÓN AUTOMÁTICA - FUNCIONA EN CUALQUIER LADO
+    redirectUri: getBaseUrl(),
+};
+
+// Puedes también agregar un mensaje de depuración
+console.log('🔍 Entorno detectado:', isDevelopment() ? '🖥️ DESARROLLO LOCAL' : '🌐 PRODUCCIÓN');
+console.log('📌 Redirect URI:', DRIVE_CONFIG.redirectUri);
+
+const TEST_USER = 'sigredvitalpaipa@gmail.com';
 
     let driveConnected = false;
     let driveUserInfo = null;
