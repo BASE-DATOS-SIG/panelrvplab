@@ -2315,6 +2315,36 @@ table .codigo {
 
 <script>
 
+// ========== GESTIÓN DE SESIÓN ==========
+function guardarSesion(usuario) {
+    if (usuario) {
+        localStorage.setItem('lab_session_user', usuario);
+        localStorage.setItem('lab_session_timestamp', Date.now().toString());
+    } else {
+        localStorage.removeItem('lab_session_user');
+        localStorage.removeItem('lab_session_timestamp');
+    }
+}
+
+function obtenerSesion() {
+    const usuario = localStorage.getItem('lab_session_user');
+    const timestamp = localStorage.getItem('lab_session_timestamp');
+    
+    // Verificar si la sesión expiró (8 horas)
+    if (usuario && timestamp) {
+        const tiempoTranscurrido = Date.now() - parseInt(timestamp);
+        const horasTranscurridas = tiempoTranscurrido / (1000 * 60 * 60);
+        if (horasTranscurridas < 8) {
+            return usuario;
+        }
+    }
+    return null;
+}
+
+function tieneSesionActiva() {
+    return obtenerSesion() !== null;
+}
+
 // ========== FUNCIÓN PARA DETECTAR EL ENTORNO ==========
 // ========== FUNCIÓN PARA OBTENER LA URL BASE DINÁMICAMENTE ==========
 function getBaseUrl() {
@@ -2508,37 +2538,43 @@ const TEST_USER = 'sigredvitalpaipa@gmail.com';
     let folderPath = [];
 
     // ========== FUNCIONES DE AUTENTICACIÓN (Se mantiene igual) ==========
-    function login() {
-        const user = document.getElementById('loginUser').value.trim();
-        const pass = document.getElementById('loginPass').value;
-        const errorDiv = document.getElementById('loginError');
+function login() {
+    const user = document.getElementById('loginUser').value.trim();
+    const pass = document.getElementById('loginPass').value;
+    const errorDiv = document.getElementById('loginError');
+    
+    if (user === 'analista' && pass === 'lab2025') {
+        currentUser = 'Analista de Laboratorio';
         
-        if (user === 'analista' && pass === 'lab2025') {
-            currentUser = 'Analista de Laboratorio';
-            document.getElementById('loginOverlay').style.display = 'none';
-            document.getElementById('mainApp').style.display = 'block';
-            document.getElementById('userNameDisplay').textContent = 'Analista';
-            document.getElementById('userNameBadge').textContent = 'Analista';
-            errorDiv.style.display = 'none';
-            initApp();
-            showToast('✅ Bienvenido al Panel de Documentación LAB');
-        } else {
-            errorDiv.style.display = 'block';
-            errorDiv.textContent = '❌ Usuario o contraseña incorrectos';
-        }
+        // ✅ GUARDAR LA SESIÓN
+        guardarSesion(currentUser);
+        
+        document.getElementById('loginOverlay').style.display = 'none';
+        document.getElementById('mainApp').style.display = 'block';
+        document.getElementById('userNameDisplay').textContent = 'Analista';
+        document.getElementById('userNameBadge').textContent = 'Analista';
+        errorDiv.style.display = 'none';
+        initApp();
+        showToast('✅ Bienvenido al Panel de Documentación LAB');
+    } else {
+        errorDiv.style.display = 'block';
+        errorDiv.textContent = '❌ Usuario o contraseña incorrectos';
     }
+}
 
-    function logout() {
-        if (confirm('¿Está seguro de cerrar sesión?')) {
-            currentUser = null;
-            document.getElementById('mainApp').style.display = 'none';
-            document.getElementById('loginOverlay').style.display = 'flex';
-            document.getElementById('loginPass').value = '';
-            disconnectDrive();
-            showToast('🔒 Sesión cerrada');
-        }
+function logout() {
+    if (confirm('¿Está seguro de cerrar sesión?')) {
+        currentUser = null;
+        // ✅ LIMPIAR LA SESIÓN
+        guardarSesion(null);
+        
+        document.getElementById('mainApp').style.display = 'none';
+        document.getElementById('loginOverlay').style.display = 'flex';
+        document.getElementById('loginPass').value = '';
+        disconnectDrive();
+        showToast('🔒 Sesión cerrada');
     }
-
+}
     function updateDriveUI() {
         const badge = document.getElementById('driveStatusBadge');
         const btn = document.getElementById('driveAuthBtn');
@@ -2656,7 +2692,7 @@ async function handleDriveRedirect() {
     // Obtener la URL actual
     let currentUrl = window.location.href;
     
-    // 🔥 NORMALIZAR: Remover barra final y parámetros
+    // NORMALIZAR: Remover barra final y parámetros
     currentUrl = currentUrl.split('?')[0];
     while (currentUrl.endsWith('/')) {
         currentUrl = currentUrl.slice(0, -1);
@@ -2673,11 +2709,18 @@ async function handleDriveRedirect() {
     const state = urlParams.get('state');
     const error = urlParams.get('error');
 
-        if (error) {
-            console.error('Error de Google OAuth:', error);
-            showToast(`⚠️ Error de Google OAuth: ${error}`, true);
-            return;
-        }
+    // ✅ Si hay error, mostrar y salir sin perder sesión
+    if (error) {
+        console.error('Error de Google OAuth:', error);
+        showToast(`⚠️ Error de Google OAuth: ${error}`, true);
+        return;
+    }
+
+    // ✅ Si no hay código, no hacer nada (la sesión sigue activa)
+    if (!code || !state) {
+        console.log('ℹ️ No hay código de autorización, sesión intacta');
+        return;
+    }
 
         if (code && state) {
             const savedState = sessionStorage.getItem('oauth_state');
@@ -2940,47 +2983,79 @@ async function handleDriveRedirect() {
         });
     }
 
-    // ========== INICIALIZACIÓN (ACTUALIZADA) ==========
-    function initApp() {
-        loadData();
-        loadRepoDocuments();
-        renderDashboard();
-        setupNavigation();
-        setupFileUpload();
-        setupSaveEvidence();
-        setupRepoHandlers();
-        setupFolderHandlers();
-        
-        // Verificar si hay token guardado
-        const savedToken = localStorage.getItem('drive_access_token');
-        if (savedToken) {
-            fetch('https://www.googleapis.com/drive/v3/about?fields=user', {
-                headers: { 'Authorization': `Bearer ${savedToken}` }
-            })
-            .then(response => {
-                if (response.ok) return response.json();
-                throw new Error('Token inválido');
-            })
-            .then(data => {
-                driveConnected = true;
-                driveAccessToken = savedToken;
-                driveUserInfo = {
-                    name: data.user.displayName || 'Usuario',
-                    email: data.user.emailAddress || TEST_USER,
-                    id: data.user.id || 'unknown'
-                };
-                updateDriveUI();
-                showToast(`✅ Google Drive conectado automáticamente como ${driveUserInfo.email}`);
-            })
-            .catch(() => {
-                localStorage.removeItem('drive_access_token');
-                console.log('ℹ️ Google Drive no conectado automáticamente');
-            });
-        }
-        
-        // Llamada crítica: procesar la redirección de Google Drive al cargar la página
-        handleDriveRedirect();
+// ========== INICIALIZACIÓN (ACTUALIZADA) ==========
+function initApp() {
+    loadData();
+    loadRepoDocuments();
+    renderDashboard();
+    setupNavigation();
+    setupFileUpload();
+    setupSaveEvidence();
+    setupRepoHandlers();
+    setupFolderHandlers();
+    
+    // ✅ VERIFICAR SESIÓN ANTES DE PROCESAR DRIVE
+    const sesionUsuario = obtenerSesion();
+    if (sesionUsuario) {
+        currentUser = sesionUsuario;
+        document.getElementById('userNameDisplay').textContent = 'Analista';
+        document.getElementById('userNameBadge').textContent = 'Analista';
+        console.log('✅ Sesión restaurada:', currentUser);
     }
+    
+    // Verificar si hay token guardado
+    const savedToken = localStorage.getItem('drive_access_token');
+    if (savedToken) {
+        fetch('https://www.googleapis.com/drive/v3/about?fields=user', {
+            headers: { 'Authorization': `Bearer ${savedToken}` }
+        })
+        .then(response => {
+            if (response.ok) return response.json();
+            throw new Error('Token inválido');
+        })
+        .then(data => {
+            driveConnected = true;
+            driveAccessToken = savedToken;
+            driveUserInfo = {
+                name: data.user.displayName || 'Usuario',
+                email: data.user.emailAddress || TEST_USER,
+                id: data.user.id || 'unknown'
+            };
+            updateDriveUI();
+            showToast(`✅ Google Drive conectado automáticamente como ${driveUserInfo.email}`);
+        })
+        .catch(() => {
+            localStorage.removeItem('drive_access_token');
+            console.log('ℹ️ Google Drive no conectado automáticamente');
+        });
+    }
+    
+    // Llamada crítica: procesar la redirección de Google Drive al cargar la página
+    handleDriveRedirect();
+}
+
+// ========== INICIALIZACIÓN PRINCIPAL (MODIFICADA) ==========
+// Esta función se ejecuta al cargar la página
+function iniciarAplicacion() {
+    // Verificar si hay sesión activa
+    const sesionUsuario = obtenerSesion();
+    
+    if (sesionUsuario) {
+        // ✅ Usuario ya autenticado - mostrar la aplicación
+        currentUser = sesionUsuario;
+        document.getElementById('loginOverlay').style.display = 'none';
+        document.getElementById('mainApp').style.display = 'block';
+        document.getElementById('userNameDisplay').textContent = 'Analista';
+        document.getElementById('userNameBadge').textContent = 'Analista';
+        initApp();
+        console.log('✅ Sesión restaurada automáticamente');
+    } else {
+        // ❌ No hay sesión - mostrar login
+        document.getElementById('loginOverlay').style.display = 'flex';
+        document.getElementById('mainApp').style.display = 'none';
+        console.log('🔐 No hay sesión activa, mostrando login');
+    }
+}
 
     // ========== CARGA DE DATOS LOCAL (Se mantiene igual) ==========
     function loadData() {
