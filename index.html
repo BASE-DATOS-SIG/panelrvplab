@@ -2316,10 +2316,16 @@ table .codigo {
 <script>
 
 // ========== FUNCIÓN PARA DETECTAR EL ENTORNO ==========
+// ========== FUNCIÓN PARA OBTENER LA URL BASE DINÁMICAMENTE ==========
 function getBaseUrl() {
     const url = window.location.href;
-    const cleanUrl = url.split('?')[0];
-    return cleanUrl.endsWith('/') ? cleanUrl.slice(0, -1) : cleanUrl;
+    // Remover cualquier parámetro de la URL
+    let cleanUrl = url.split('?')[0];
+    // 🔥 NORMALIZAR: Remover la barra final SIEMPRE
+    while (cleanUrl.endsWith('/')) {
+        cleanUrl = cleanUrl.slice(0, -1);
+    }
+    return cleanUrl;
 }
 
 function isDevelopment() {
@@ -2646,22 +2652,26 @@ async function connectDrive() {
 }
 
     // 5. Manejar la Redirección de vuelta de Google (PROBLEMA RESUELTO)
-    async function handleDriveRedirect() {
-        // Obtenemos la URL actual (incluyendo la barra final si existe)
-        let currentUrl = window.location.href;
-        
-        // Si la URL termina en "/", la limpiamos para que coincida con el redirect_uri configurado
-        if (currentUrl.endsWith('/')) {
-            currentUrl = currentUrl.slice(0, -1);
-            // Limpiamos la URL del navegador para que no cause problemas en futuras recargas
-            window.history.replaceState({}, document.title, currentUrl);
-        }
+async function handleDriveRedirect() {
+    // Obtener la URL actual
+    let currentUrl = window.location.href;
+    
+    // 🔥 NORMALIZAR: Remover barra final y parámetros
+    currentUrl = currentUrl.split('?')[0];
+    while (currentUrl.endsWith('/')) {
+        currentUrl = currentUrl.slice(0, -1);
+    }
+    
+    // Actualizar la URL en el navegador (para que coincida)
+    if (window.location.href !== currentUrl) {
+        window.history.replaceState({}, document.title, currentUrl);
+    }
 
-        // Parseamos la URL corregida para obtener los parámetros
-        const urlParams = new URLSearchParams(new URL(currentUrl).search);
-        const code = urlParams.get('code');
-        const state = urlParams.get('state');
-        const error = urlParams.get('error');
+    // Parseamos la URL corregida para obtener los parámetros
+    const urlParams = new URLSearchParams(new URL(window.location.href).search);
+    const code = urlParams.get('code');
+    const state = urlParams.get('state');
+    const error = urlParams.get('error');
 
         if (error) {
             console.error('Error de Google OAuth:', error);
