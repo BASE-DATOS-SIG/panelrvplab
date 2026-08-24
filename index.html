@@ -3538,160 +3538,164 @@ function iniciarAplicacion() {
         document.getElementById('pageSubtitle').textContent = `${chapter.items.length} requisitos de evaluación`;
     }
 
-        // ========== RENDER REPOSITORIO (VERSIÓN PROFESIONAL CON TABLA) ==========
-    function renderRepository() {
-        const container = document.getElementById('dynamicContent');
+// ========== RENDER REPOSITORIO (VERSIÓN PROFESIONAL CON TABLA) ==========
+function renderRepository() {
+    const container = document.getElementById('dynamicContent');
 
-        // 1. Obtener estadísticas
-        const carpetas = repoDocuments.filter(d => d.esCarpeta === true);
-        const archivos = repoDocuments.filter(d => d.esCarpeta !== true);
-        const cloudFiles = archivos.filter(d => d.storage === 'cloudinary' || d.storage === 'cloudinary_drive' || d.storage === 'cloudinary_pending');
-        const driveFiles = archivos.filter(d => d.storage === 'drive' || d.storage === 'cloudinary_drive');
+    // 1. Obtener estadísticas
+    const carpetas = repoDocuments.filter(d => d.esCarpeta === true);
+    const archivos = repoDocuments.filter(d => d.esCarpeta !== true);
+    const cloudFiles = archivos.filter(d => d.storage === 'cloudinary' || d.storage === 'cloudinary_drive' || d.storage === 'cloudinary_pending');
+    const driveFiles = archivos.filter(d => d.storage === 'drive' || d.storage === 'cloudinary_drive');
 
-        // 2. Construir Breadcrumbs
-        let breadcrumbHtml = `<span onclick="navigateToFolder(null)" class="breadcrumb-item">📁 Raíz</span>`;
-        folderPath.forEach((f, index) => {
-            breadcrumbHtml += ` <span class="breadcrumb-sep">›</span> `;
-            breadcrumbHtml += `<span onclick="navigateToFolder('${f.id}')" class="breadcrumb-item">📁 ${f.nombre}</span>`;
-        });
+    // 2. Construir Breadcrumbs
+    let breadcrumbHtml = `<span onclick="navigateToFolder(null)" class="breadcrumb-item">📁 Raíz</span>`;
+    folderPath.forEach((f, index) => {
+        breadcrumbHtml += ` <span class="breadcrumb-sep">›</span> `;
+        breadcrumbHtml += `<span onclick="navigateToFolder('${f.id}')" class="breadcrumb-item">📁 ${f.nombre}</span>`;
+    });
 
-        // 3. Obtener archivos de la carpeta actual
-        const itemsInFolder = repoDocuments.filter(d => d.parent === currentFolderId);
-        const foldersInFolder = itemsInFolder.filter(d => d.esCarpeta === true);
-        const filesInFolder = itemsInFolder.filter(d => d.esCarpeta !== true);
+    // 3. Obtener archivos de la carpeta actual
+    const itemsInFolder = repoDocuments.filter(d => d.parent === currentFolderId);
+    const foldersInFolder = itemsInFolder.filter(d => d.esCarpeta === true);
+    const filesInFolder = itemsInFolder.filter(d => d.esCarpeta !== true);
 
-        // 4. Construir HTML Principal
-        let html = `
-            <!-- PANEL DE ESTADÍSTICAS -->
-            <div class="repo-stats-panel">
-                <div class="stat-item"><span class="stat-number">${archivos.length}</span> <span class="stat-label">Documentos</span></div>
-                <div class="stat-item"><span class="stat-number">${carpetas.length}</span> <span class="stat-label">Carpetas</span></div>
-                <div class="stat-item"><span class="stat-number">${cloudFiles.length}</span> <span class="stat-label"><i class="fas fa-cloud"></i> Cloudinary</span></div>
-                <div class="stat-item"><span class="stat-number">${driveFiles.length}</span> <span class="stat-label"><i class="fab fa-google-drive"></i> Google Drive</span></div>
+    // 4. Construir HTML Principal
+    let html = `
+        <!-- PANEL DE ESTADÍSTICAS -->
+        <div class="repo-stats-panel">
+            <div class="stat-item"><span class="stat-number">${archivos.length}</span> <span class="stat-label">Documentos</span></div>
+            <div class="stat-item"><span class="stat-number">${carpetas.length}</span> <span class="stat-label">Carpetas</span></div>
+            <div class="stat-item"><span class="stat-number">${cloudFiles.length}</span> <span class="stat-label"><i class="fas fa-cloud"></i> Cloudinary</span></div>
+            <div class="stat-item"><span class="stat-number">${driveFiles.length}</span> <span class="stat-label"><i class="fab fa-google-drive"></i> Google Drive</span></div>
+        </div>
+
+        <!-- BARRA DE HERRAMIENTAS -->
+        <div class="repo-toolbar">
+            <div class="repo-breadcrumb">
+                <i class="fas fa-folder-open"></i> ${breadcrumbHtml}
             </div>
-
-            <!-- BARRA DE HERRAMIENTAS -->
-            <div class="repo-toolbar">
-                <div class="repo-breadcrumb">
-                    <i class="fas fa-folder-open"></i> ${breadcrumbHtml}
-                </div>
-                <div class="repo-actions">
-                    <button class="btn btn-primary btn-sm" onclick="openRepoModal()"><i class="fas fa-upload"></i> Subir Documento</button>
-                    <button class="btn btn-success btn-sm" onclick="openFolderModal()"><i class="fas fa-folder-plus"></i> Nueva Carpeta</button>
-                    ${driveConnected ? `<button class="btn btn-drive btn-sm" onclick="syncDriveFiles()"><i class="fab fa-google-drive"></i> Sincronizar Drive</button>` : ''}
-                </div>
+            <div class="repo-actions">
+                <button class="btn btn-primary btn-sm" onclick="openRepoModal()"><i class="fas fa-upload"></i> Subir Documento</button>
+                <button class="btn btn-success btn-sm" onclick="openFolderModal()"><i class="fas fa-folder-plus"></i> Nueva Carpeta</button>
+                ${driveConnected ? `<button class="btn btn-drive btn-sm" onclick="syncDriveFiles()"><i class="fab fa-google-drive"></i> Sincronizar Drive</button>` : ''}
             </div>
+        </div>
 
-            <!-- TABLA DE CONTENIDO -->
-            <div class="repo-table-container">
-                <table class="repo-table">
-            <thead>
-                <tr>
-                    <th style="width: 30%; min-width: 180px;">Nombre</th>
-                    <th style="width: 20%; min-width: 140px;">Fecha de modificación</th>
-                    <th style="width: 20%; min-width: 80px;">Tipo</th>
-                    <th style="width: 15%; min-width: 80px;">Tamaño</th>
-                    <th style="width: 15%; min-width: 110px;">Almacenamiento</th>
-                </tr>
-                    </thead>
-                    <tbody>
+        <!-- TABLA DE CONTENIDO -->
+        <div class="repo-table-container">
+            <table class="repo-table">
+                <thead>
+                    <tr>
+                        <th style="width: 25%; min-width: 150px;">Nombre</th>
+                        <th style="width: 20%; min-width: 120px;">Descripción</th>
+                        <th style="width: 20%; min-width: 140px;">Fecha de modificación</th>
+                        <th style="width: 15%; min-width: 80px;">Tipo</th>
+                        <th style="width: 10%; min-width: 70px;">Tamaño</th>
+                        <th style="width: 10%; min-width: 110px;">Almacenamiento</th>
+                    </tr>
+                </thead>
+                <tbody>
+    `;
+
+    // --- Mostrar CARPETAS primero ---
+    if (foldersInFolder.length === 0 && filesInFolder.length === 0) {
+        html += `
+            <tr>
+                <td colspan="6" class="repo-empty-row">
+                    <i class="fas fa-folder-open" style="font-size: 2rem; color: #8ba3bc; display: block; margin-bottom: 0.5rem;"></i>
+                    Esta carpeta está vacía
+                    <div style="margin-top: 0.5rem;">
+                        <button class="btn btn-primary btn-sm" onclick="openRepoModal()">Subir documento</button>
+                        <button class="btn btn-success btn-sm" onclick="openFolderModal()">Crear carpeta</button>
+                    </div>
+                </td>
+            </tr>
         `;
-
-        // --- Mostrar CARPETAS primero ---
-        if (foldersInFolder.length === 0 && filesInFolder.length === 0) {
+    } else {
+        // Mostrar Carpetas
+        foldersInFolder.forEach(folder => {
+            const fecha = folder.createdAt || 'N/A';
             html += `
-                <tr>
-                    <td colspan="5" class="repo-empty-row">
-                        <i class="fas fa-folder-open" style="font-size: 2rem; color: #8ba3bc; display: block; margin-bottom: 0.5rem;"></i>
-                        Esta carpeta está vacía
-                        <div style="margin-top: 0.5rem;">
-                            <button class="btn btn-primary btn-sm" onclick="openRepoModal()">Subir documento</button>
-                            <button class="btn btn-success btn-sm" onclick="openFolderModal()">Crear carpeta</button>
+                <tr class="repo-row repo-folder-row" onclick="navigateToFolder('${folder.id}')" style="cursor: pointer;">
+                    <td><i class="fas fa-folder" style="color: #e8a838; margin-right: 8px;"></i> ${folder.nombre}</td>
+                    <td style="color: #94a3b8; font-style: italic; font-size: 0.8rem;">—</td>
+                    <td>${fecha}</td>
+                    <td><span class="repo-file-type-badge type-folder">Carpeta</span></td>
+                    <td>—</td>
+                    <td>
+                        <div class="repo-row-actions">
+                            <button class="btn btn-danger btn-sm repo-action-btn" onclick="event.stopPropagation(); deleteDocument('${folder.id}')"><i class="fas fa-trash"></i></button>
                         </div>
                     </td>
                 </tr>
             `;
-        } else {
-            // Mostrar Carpetas
-            foldersInFolder.forEach(folder => {
-                const fecha = folder.createdAt || 'N/A';
-                html += `
-                    <tr class="repo-row repo-folder-row" onclick="navigateToFolder('${folder.id}')" style="cursor: pointer;">
-                        <td><i class="fas fa-folder" style="color: #e8a838; margin-right: 8px;"></i> ${folder.nombre}</td>
-                        <td>${fecha}</td>
-                        <td><span class="repo-file-type-badge type-folder">Carpeta</span></td>
-                        <td>—</td>
-                        <td>
-                            <div class="repo-row-actions">
-                                <button class="btn btn-danger btn-sm repo-action-btn" onclick="event.stopPropagation(); deleteDocument('${folder.id}')"><i class="fas fa-trash"></i></button>
+        });
+
+        // Mostrar Archivos
+        filesInFolder.forEach(doc => {
+            const fecha = doc.createdAt || 'N/A';
+            const fileSize = doc.fileSize ? (doc.fileSize / 1024).toFixed(1) + ' KB' : '—';
+            const descripcion = doc.descripcion || '';
+            const iconMap = { 
+                'reporte': 'fa-file-alt', 
+                'resultado_externo': 'fa-file-export', 
+                'manual': 'fa-book', 
+                'procedimiento': 'fa-list-check', 
+                'certificado': 'fa-certificate', 
+                'otro': 'fa-file' 
+            };
+            const icon = iconMap[doc.tipo] || 'fa-file';
+            
+            // Determinar badge de tipo de archivo
+            let typeBadge = '<span class="repo-file-type-badge type-other">Documento</span>';
+            const fileName = (doc.fileName || '').toLowerCase();
+            if (fileName.endsWith('.pdf')) typeBadge = '<span class="repo-file-type-badge type-pdf">PDF</span>';
+            else if (fileName.endsWith('.xlsx') || fileName.endsWith('.xls')) typeBadge = '<span class="repo-file-type-badge type-excel">Excel</span>';
+            else if (fileName.endsWith('.docx') || fileName.endsWith('.doc')) typeBadge = '<span class="repo-file-type-badge type-word">Word</span>';
+            else if (fileName.endsWith('.zip') || fileName.endsWith('.rar')) typeBadge = '<span class="repo-file-type-badge type-zip">ZIP</span>';
+            else if (fileName.endsWith('.jpg') || fileName.endsWith('.png') || fileName.endsWith('.gif')) typeBadge = '<span class="repo-file-type-badge type-image">Imagen</span>';
+
+            // Badge de almacenamiento
+            let storageBadge = '';
+            if (doc.storage === 'cloudinary' || doc.storage === 'cloudinary_pending') {
+                storageBadge = `<span class="repo-storage-badge cloud"><i class="fas fa-cloud"></i> Cloud</span>`;
+            } else if (doc.storage === 'drive') {
+                storageBadge = `<span class="repo-storage-badge drive"><i class="fab fa-google-drive"></i> Drive</span>`;
+            } else if (doc.storage === 'cloudinary_drive') {
+                storageBadge = `<span class="repo-storage-badge cloud"><i class="fas fa-cloud"></i> Cloud</span> <span class="repo-storage-badge drive"><i class="fab fa-google-drive"></i> Drive</span>`;
+            }
+
+            html += `
+                <tr class="repo-row" onclick="viewDocument('${doc.id}')" style="cursor: pointer;">
+                    <td><i class="fas ${icon}" style="color: #1a8a9c; margin-right: 8px;"></i> ${doc.nombre || 'Sin título'}</td>
+                    <td style="font-size: 0.8rem; color: #4a7a9c; max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="${descripcion}">${descripcion || '<span style="color:#94a3b8; font-style:italic;">Sin descripción</span>'}</td>
+                    <td>${fecha}</td>
+                    <td>${typeBadge}</td>
+                    <td>${fileSize}</td>
+                    <td>
+                        <div style="display: flex; gap: 4px; flex-wrap: wrap; align-items: center;">
+                            ${storageBadge}
+                            <div class="repo-row-actions" style="display: inline-flex; gap: 2px; margin-left: 4px;">
+                                <button class="btn btn-danger btn-sm repo-action-btn" onclick="event.stopPropagation(); deleteDocument('${doc.id}')"><i class="fas fa-trash"></i></button>
                             </div>
-                        </td>
-                    </tr>
-                `;
-            });
+                        </div>
+                    </td>
+                </tr>
+            `;
+        });
+    }
 
-            // Mostrar Archivos
-            filesInFolder.forEach(doc => {
-                const fecha = doc.createdAt || 'N/A';
-                const fileSize = doc.fileSize ? (doc.fileSize / 1024).toFixed(1) + ' KB' : '—';
-                const iconMap = { 
-                    'reporte': 'fa-file-alt', 
-                    'resultado_externo': 'fa-file-export', 
-                    'manual': 'fa-book', 
-                    'procedimiento': 'fa-list-check', 
-                    'certificado': 'fa-certificate', 
-                    'otro': 'fa-file' 
-                };
-                const icon = iconMap[doc.tipo] || 'fa-file';
-                
-                // Determinar badge de tipo de archivo
-                let typeBadge = '<span class="repo-file-type-badge type-other">Documento</span>';
-                const fileName = (doc.fileName || '').toLowerCase();
-                if (fileName.endsWith('.pdf')) typeBadge = '<span class="repo-file-type-badge type-pdf">PDF</span>';
-                else if (fileName.endsWith('.xlsx') || fileName.endsWith('.xls')) typeBadge = '<span class="repo-file-type-badge type-excel">Excel</span>';
-                else if (fileName.endsWith('.docx') || fileName.endsWith('.doc')) typeBadge = '<span class="repo-file-type-badge type-word">Word</span>';
-                else if (fileName.endsWith('.zip') || fileName.endsWith('.rar')) typeBadge = '<span class="repo-file-type-badge type-zip">ZIP</span>';
-                else if (fileName.endsWith('.jpg') || fileName.endsWith('.png') || fileName.endsWith('.gif')) typeBadge = '<span class="repo-file-type-badge type-image">Imagen</span>';
+    html += `
+                </tbody>
+            </table>
+        </div>
+    `;
 
-                // Badge de almacenamiento
-                let storageBadge = '';
-                if (doc.storage === 'cloudinary' || doc.storage === 'cloudinary_pending') {
-                    storageBadge = `<span class="repo-storage-badge cloud"><i class="fas fa-cloud"></i> Cloud</span>`;
-                } else if (doc.storage === 'drive') {
-                    storageBadge = `<span class="repo-storage-badge drive"><i class="fab fa-google-drive"></i> Drive</span>`;
-                } else if (doc.storage === 'cloudinary_drive') {
-                    storageBadge = `<span class="repo-storage-badge cloud"><i class="fas fa-cloud"></i> Cloud</span> <span class="repo-storage-badge drive"><i class="fab fa-google-drive"></i> Drive</span>`;
-                }
-
-                html += `
-                    <tr class="repo-row" onclick="viewDocument('${doc.id}')" style="cursor: pointer;">
-                        <td><i class="fas ${icon}" style="color: #1a8a9c; margin-right: 8px;"></i> ${doc.nombre || 'Sin título'}</td>
-                        <td>${fecha}</td>
-                        <td>${typeBadge}</td>
-                        <td>${fileSize}</td>
-                        <td>
-                            <div style="display: flex; gap: 4px; flex-wrap: wrap; align-items: center;">
-                                ${storageBadge}
-                                <div class="repo-row-actions" style="display: inline-flex; gap: 2px; margin-left: 4px;">
-                                    <button class="btn btn-danger btn-sm repo-action-btn" onclick="event.stopPropagation(); deleteDocument('${doc.id}')"><i class="fas fa-trash"></i></button>
-                                </div>
-                            </div>
-                        </td>
-                    </tr>
-                `;
-            });
-        }
-
-        html += `
-                    </tbody>
-                </table>
-            </div>
-        `;
-
-        container.innerHTML = html;
-        document.getElementById('pageTitle').textContent = 'Repositorio Documental';
-        document.getElementById('pageSubtitle').textContent = `${archivos.length} documentos • ${carpetas.length} carpetas • ${cloudFiles.length} en Cloudinary • ${driveFiles.length} en Google Drive`;
-    } 
+    container.innerHTML = html;
+    document.getElementById('pageTitle').textContent = 'Repositorio Documental';
+    document.getElementById('pageSubtitle').textContent = `${archivos.length} documentos • ${carpetas.length} carpetas • ${cloudFiles.length} en Cloudinary • ${driveFiles.length} en Google Drive`;
+}
 
     // ========== NAVEGACIÓN (Se mantiene igual) ==========
     function setupNavigation() {
