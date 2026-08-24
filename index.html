@@ -3538,7 +3538,7 @@ function iniciarAplicacion() {
         document.getElementById('pageSubtitle').textContent = `${chapter.items.length} requisitos de evaluación`;
     }
 
-        // ========== RENDER REPOSITORIO (VERSIÓN PROFESIONAL) ==========
+        // ========== RENDER REPOSITORIO (VERSIÓN PROFESIONAL CON TABLA) ==========
     function renderRepository() {
         const container = document.getElementById('dynamicContent');
 
@@ -3691,7 +3691,7 @@ function iniciarAplicacion() {
         container.innerHTML = html;
         document.getElementById('pageTitle').textContent = 'Repositorio Documental';
         document.getElementById('pageSubtitle').textContent = `${archivos.length} documentos • ${carpetas.length} carpetas • ${cloudFiles.length} en Cloudinary • ${driveFiles.length} en Google Drive`;
-    }
+    } 
 
     // ========== NAVEGACIÓN (Se mantiene igual) ==========
     function setupNavigation() {
