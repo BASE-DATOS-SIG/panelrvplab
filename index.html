@@ -4152,15 +4152,24 @@ function iniciarAplicacion() {
         });
     }
 
-    // ========== REPOSITORIO: HANDLERS (Se mantiene igual) ==========
+    // ========== REPOSITORIO: HANDLERS ==========
     function setupRepoHandlers() {
+        // Mejorar el evento change del input file para mostrar el nombre del archivo
         document.getElementById('repoFileInput').addEventListener('change', function(e) {
             if (this.files.length > 0) {
                 selectedRepoFile = this.files[0];
-                document.getElementById('repoFilePreview').textContent = `📎 ${selectedRepoFile.name} (${(selectedRepoFile.size / 1024).toFixed(1)} KB)`;
+                const preview = document.getElementById('repoFilePreview');
+                preview.textContent = `📎 ${selectedRepoFile.name} (${(selectedRepoFile.size / 1024).toFixed(1)} KB)`;
+                preview.style.color = '#0a1628';
+                preview.style.fontWeight = '600';
+            } else {
+                document.getElementById('repoFilePreview').textContent = 'Sin archivos seleccionados';
+                document.getElementById('repoFilePreview').style.color = '#64748b';
+                selectedRepoFile = null;
             }
         });
         
+        // Guardar documento (ya existente, solo asegurar que funciona)
         document.getElementById('saveRepoBtn').addEventListener('click', function() {
             const tipo = document.getElementById('repoTipo').value;
             const nombre = document.getElementById('repoNombre').value.trim();
@@ -4249,9 +4258,34 @@ function iniciarAplicacion() {
         });
     }
 
+    // ========== REPOSITORIO: ABRIR MODAL CON MEJORAS ==========
     function openRepoModal() {
+        // Resetear el formulario
+        document.getElementById('repoNombre').value = '';
+        document.getElementById('repoDesc').value = '';
+        document.getElementById('repoFilePreview').textContent = 'Sin archivos seleccionados';
+        document.getElementById('repoFilePreview').style.color = '#64748b';
+        document.getElementById('repoFileInput').value = '';
+        selectedRepoFile = null;
+        
+        // Mostrar el modal
         document.getElementById('repoModal').classList.add('active');
     }
+
+    // Mejorar el evento change del input file para mostrar el nombre del archivo
+    document.getElementById('repoFileInput').addEventListener('change', function(e) {
+        if (this.files.length > 0) {
+            selectedRepoFile = this.files[0];
+            const preview = document.getElementById('repoFilePreview');
+            preview.textContent = `📎 ${selectedRepoFile.name} (${(selectedRepoFile.size / 1024).toFixed(1)} KB)`;
+            preview.style.color = '#0a1628';
+            preview.style.fontWeight = '600';
+        } else {
+            document.getElementById('repoFilePreview').textContent = 'Sin archivos seleccionados';
+            document.getElementById('repoFilePreview').style.color = '#64748b';
+            selectedRepoFile = null;
+        }
+    });
 
     // ========== CARPETA: HANDLERS (Se mantiene igual) ==========
     function setupFolderHandlers() {
