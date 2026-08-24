@@ -19,6 +19,7 @@
 /* ========== RESET Y ESTILOS BASE ========== */
 /* ============================================================== */
 
+
 /* Elimina márgenes, paddings y box-sizing por defecto en todos los elementos */
 * { margin: 0; padding: 0; box-sizing: border-box; }
 
@@ -2345,17 +2346,18 @@ function tieneSesionActiva() {
     return obtenerSesion() !== null;
 }
 
-// ========== FUNCIÓN PARA DETECTAR EL ENTORNO ==========
-// ========== FUNCIÓN PARA OBTENER LA URL BASE DINÁMICAMENTE ==========
-function getBaseUrl() {
-    const url = window.location.href;
-    // Remover cualquier parámetro de la URL
+// ========== FUNCIONES PARA NORMALIZAR URL ==========
+
+function normalizarUrl(url) {
     let cleanUrl = url.split('?')[0];
-    // 🔥 NORMALIZAR: Remover la barra final SIEMPRE
     while (cleanUrl.endsWith('/')) {
         cleanUrl = cleanUrl.slice(0, -1);
     }
     return cleanUrl;
+}
+
+function getBaseUrl() {
+    return normalizarUrl(window.location.href);
 }
 
 function isDevelopment() {
@@ -2368,28 +2370,29 @@ function isProduction() {
     return url.includes('github.io') || url.includes('vercel.app') || url.includes('netlify.app');
 }
 
-// ========== CONFIGURACIÓN DE CLOUDINARY ==========
+// ==============================================================
+// ========== CONFIGURACIÓN DE SERVICIOS ==========
+// ==============================================================
+
 const CLOUDINARY_CONFIG = {
     cloudName: 'z11uufz3',
     uploadPreset: 'lab_uploads',
     folderBase: 'SIG_LABORATORIO'
 };
 
-// ========== CONFIGURACIÓN DE GOOGLE DRIVE (MULTI-ENTORNO) ==========
 const DRIVE_CONFIG = {
     clientId: '549801807409-b3f34iagtn0br4q58s5439hlqnhtt518.apps.googleusercontent.com',
     clientSecret: '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',
     scope: 'https://www.googleapis.com/auth/drive.file',
     discoveryDocs: ['https://www.googleapis.com/discovery/v1/apis/drive/v3/rest'],
-    // ✅ DETECCIÓN AUTOMÁTICA - FUNCIONA EN CUALQUIER LADO
     redirectUri: getBaseUrl(),
 };
 
-// Puedes también agregar un mensaje de depuración
+const TEST_USER = 'sigredvitalpaipa@gmail.com';
+
+// Mensaje de depuración
 console.log('🔍 Entorno detectado:', isDevelopment() ? '🖥️ DESARROLLO LOCAL' : '🌐 PRODUCCIÓN');
 console.log('📌 Redirect URI:', DRIVE_CONFIG.redirectUri);
-
-const TEST_USER = 'sigredvitalpaipa@gmail.com';
 
     let driveConnected = false;
     let driveUserInfo = null;
@@ -2691,6 +2694,7 @@ async function connectDrive() {
 async function handleDriveRedirect() {
     console.log('🔍 === INICIO handleDriveRedirect ===');
     console.log('📍 URL actual:', window.location.href);
+    console.log('📌 Redirect URI configurado:', DRIVE_CONFIG.redirectUri);
     
     // Obtener la URL actual
     let currentUrl = window.location.href;
