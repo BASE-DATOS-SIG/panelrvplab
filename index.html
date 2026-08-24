@@ -4340,15 +4340,37 @@ function iniciarAplicacion() {
         document.getElementById('sidebar').classList.toggle('open');
     });
 
-    crearParticulas();
+crearParticulas();
 
-    console.log('🧪 Sistema de Gestión de Calidad de Laboratorio de Agua Potable');
-    console.log('📧 Bienvenido al Panel de Documentación');
-    console.log('🔐 Google Drive integrado con OAuth2 PKCE');
-    console.log(`   Client ID: ${DRIVE_CONFIG.clientId}`);
-    console.log(`   Redirect URI: ${DRIVE_CONFIG.redirectUri}`);
-    console.log('✅ 87 Ítems de la Resolución 1619 de 2015 incorporados');
-    console.log('☁️ Cloudinary SIEMPRE CONECTADO');
+console.log('🧪 Sistema de Gestión de Calidad de Laboratorio de Agua Potable');
+console.log('📧 Bienvenido al Panel de Documentación');
+console.log('🔐 Google Drive integrado con OAuth2 PKCE');
+console.log(`   Client ID: ${DRIVE_CONFIG.clientId}`);
+console.log(`   Redirect URI: ${DRIVE_CONFIG.redirectUri}`);
+console.log('✅ 87 Ítems de la Resolución 1619 de 2015 incorporados');
+console.log('☁️ Cloudinary SIEMPRE CONECTADO');
+
+// ==============================================================
+// ========== 🔥 CORRECCIÓN CRÍTICA: PROCESAR REDIRECCIÓN ==========
+// ==============================================================
+
+// Verificar si la URL tiene parámetros de redirección de Google
+(function procesarRedireccion() {
+    const urlParams = new URLSearchParams(window.location.search);
+    const code = urlParams.get('code');
+    const state = urlParams.get('state');
+    
+    if (code || state) {
+        console.log('🔑 === DETECTADA REDIRECCIÓN DE GOOGLE OAUTH ===');
+        console.log('📍 URL con parámetros:', window.location.href);
+        console.log('📦 code:', code ? '✅ Presente' : '❌ Ausente');
+        console.log('📦 state:', state ? '✅ Presente' : '❌ Ausente');
+        console.log('🔄 Ejecutando handleDriveRedirect()...');
+        handleDriveRedirect();
+    } else {
+        console.log('ℹ️ No hay redirección de Google OAuth');
+    }
+})();
 </script>
 </body>
 </html>
