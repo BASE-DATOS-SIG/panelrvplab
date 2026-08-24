@@ -4272,21 +4272,6 @@ function iniciarAplicacion() {
         document.getElementById('repoModal').classList.add('active');
     }
 
-    // Mejorar el evento change del input file para mostrar el nombre del archivo
-    document.getElementById('repoFileInput').addEventListener('change', function(e) {
-        if (this.files.length > 0) {
-            selectedRepoFile = this.files[0];
-            const preview = document.getElementById('repoFilePreview');
-            preview.textContent = `📎 ${selectedRepoFile.name} (${(selectedRepoFile.size / 1024).toFixed(1)} KB)`;
-            preview.style.color = '#0a1628';
-            preview.style.fontWeight = '600';
-        } else {
-            document.getElementById('repoFilePreview').textContent = 'Sin archivos seleccionados';
-            document.getElementById('repoFilePreview').style.color = '#64748b';
-            selectedRepoFile = null;
-        }
-    });
-
     // ========== CARPETA: HANDLERS (Se mantiene igual) ==========
     function setupFolderHandlers() {
         document.getElementById('saveFolderBtn').addEventListener('click', async function() {
