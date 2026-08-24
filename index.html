@@ -2108,7 +2108,7 @@ table .codigo {
                 <label>👤 Usuario</label>
                 <div class="input-icon">
                     <i class="fas fa-user"></i>
-                    <input type="text" id="loginUser" placeholder="Ingrese su usuario" value="analista">
+                    <input type="text" id="loginUser" placeholder="Ingrese su usuario"
                 </div>
             </div>
 
@@ -2116,7 +2116,7 @@ table .codigo {
                 <label>🔐 Contraseña</label>
                 <div class="input-icon">
                     <i class="fas fa-lock"></i>
-                    <input type="password" id="loginPass" placeholder="Ingrese su contraseña" value="lab2025">
+                    <input type="password" id="loginPass" placeholder="Ingrese su contraseña">
                 </div>
             </div>
 
@@ -2434,27 +2434,168 @@ table .codigo {
 
 <script>
 
+// ==============================================================
+// ========== CONFIGURACIÓN DE USUARIOS ==========
+// ==============================================================
+
+const USUARIOS_CONFIG = {
+    'RVPLAB': {
+        password: 'Lab#2026.',
+        nombre: 'Analista de Laboratorio',
+        rol: 'LABORATORIO',
+        icon: '🧪'
+    },
+    'APOYOLAB': {
+        password: 'Apoyo#2026.',
+        nombre: 'Apoyo Laboratorio',
+        rol: 'COORDINACIÓN',
+        icon: '📋'
+    },
+    'UNIDADLABRVP': {
+        password: 'Unidad#2026.',
+        nombre: 'Administrador del Sistema',
+        rol: 'ADMINISTRADOR',
+        icon: '⚙️'
+    },
+};
+
+// ==============================================================
+// ========== VARIABLES GLOBALES ADICIONALES ==========
+// ==============================================================
+
+let currentUserRole = null;
+
+// ==============================================================
+// ========== SELECTOR DE USUARIOS ==========
+// ==============================================================
+
+function cargarSelectorUsuarios() {
+    const container = document.getElementById('userSelector');
+    if (!container) return;
+    
+    let html = '';
+    let isFirst = true;
+    
+    for (const [username, data] of Object.entries(USUARIOS_CONFIG)) {
+        const rolClass = data.rol.toLowerCase().replace('ó', 'o');
+        const isSelected = isFirst ? 'selected' : '';
+        
+        html += `
+            <div class="user-option ${isSelected}" data-username="${username}" onclick="seleccionarUsuario('${username}')">
+                <div class="user-info">
+                    <span class="user-icon">${data.icon}</span>
+                    <span class="user-name">${data.nombre}</span>
+                    <span class="user-username">${username}</span>
+                    <span class="user-role-badge ${rolClass}">${data.rol}</span>
+                </div>
+                <span class="check-mark">✅</span>
+            </div>
+        `;
+        isFirst = false;
+    }
+    
+    html += `
+        <div class="user-hint">
+            💡 Haz clic en un usuario para seleccionarlo, luego ingresa su contraseña
+        </div>
+    `;
+    
+    container.innerHTML = html;
+    
+    const firstUser = Object.keys(USUARIOS_CONFIG)[0];
+    if (firstUser) {
+        document.getElementById('loginUser').value = firstUser;
+        document.getElementById('loginPass').value = USUARIOS_CONFIG[firstUser].password;
+    }
+}
+
+function seleccionarUsuario(username) {
+    document.getElementById('loginUser').value = username;
+    document.getElementById('loginPass').value = '';
+    document.getElementById('loginPass').focus();
+    document.getElementById('loginError').style.display = 'none';
+    
+    const options = document.querySelectorAll('.user-option');
+    options.forEach(opt => {
+        opt.classList.remove('selected');
+        if (opt.dataset.username === username) {
+            opt.classList.add('selected');
+        }
+    });
+    
+    const userData = USUARIOS_CONFIG[username];
+    if (userData) {
+        showToast(`👤 ${userData.nombre} (${userData.rol}) - Ingrese la contraseña`, false);
+    }
+}
+
+// ==============================================================
+// ========== FUNCIÓN ACTUALIZAR UI (MEJORADA) ==========
+// ==============================================================
+
+// ✅ ESTA FUNCIÓN REEMPLAZA A LA EXISTENTE - BÚSCALA Y REEMPLÁZALA
+function actualizarUIUsuario(nombre, rol) {
+    // Badge de usuario en el header
+    document.getElementById('userNameBadge').textContent = nombre;
+    
+    // Actualizar el badge de rol en el header
+    const roleBadge = document.querySelector('.user-badge .role');
+    if (roleBadge) {
+        roleBadge.textContent = rol;
+        // Color según el rol
+        const colors = {
+            'LABORATORIO': '#1a8a9c',
+            'COORDINACIÓN': '#d97706',
+            'ADMINISTRADOR': '#dc2626'
+        };
+        roleBadge.style.background = colors[rol] || '#1a8a9c';
+        roleBadge.style.color = 'white';
+    }
+    
+    // Sidebar footer - nombre del usuario
+    document.getElementById('userNameDisplay').textContent = nombre;
+    
+    // Sidebar footer - mostrar rol
+    const footerUserDiv = document.querySelector('.sidebar-footer .flex span');
+    if (footerUserDiv) {
+        footerUserDiv.innerHTML = `👤 ${nombre} <span style="font-size:0.6rem; background:rgba(79,195,247,0.2); padding:0.1rem 0.5rem; border-radius:10px; margin-left:0.3rem;">${rol}</span>`;
+    }
+    
+    // Actualizar variables globales
+    currentUser = nombre;
+    currentUserRole = rol;
+}
+
 // ========== GESTIÓN DE SESIÓN ==========
-function guardarSesion(usuario) {
+function guardarSesion(usuario, rol = null) {
     if (usuario) {
-        localStorage.setItem('lab_session_user', usuario);
-        localStorage.setItem('lab_session_timestamp', Date.now().toString());
+        const sesionData = {
+            usuario: usuario,
+            rol: rol,
+            timestamp: Date.now().toString()
+        };
+        localStorage.setItem('lab_session_user', JSON.stringify(sesionData));
     } else {
         localStorage.removeItem('lab_session_user');
-        localStorage.removeItem('lab_session_timestamp');
     }
 }
 
 function obtenerSesion() {
-    const usuario = localStorage.getItem('lab_session_user');
-    const timestamp = localStorage.getItem('lab_session_timestamp');
-    
-    // Verificar si la sesión expiró (8 horas)
-    if (usuario && timestamp) {
-        const tiempoTranscurrido = Date.now() - parseInt(timestamp);
-        const horasTranscurridas = tiempoTranscurrido / (1000 * 60 * 60);
-        if (horasTranscurridas < 8) {
-            return usuario;
+    const sesionDataStr = localStorage.getItem('lab_session_user');
+    if (sesionDataStr) {
+        try {
+            const sesionData = JSON.parse(sesionDataStr);
+            const tiempoTranscurrido = Date.now() - parseInt(sesionData.timestamp);
+            const horasTranscurridas = tiempoTranscurrido / (1000 * 60 * 60);
+            if (horasTranscurridas < 8) {
+                return sesionData;
+            }
+        } catch (e) {
+            // Formato antiguo (solo usuario)
+            const usuario = localStorage.getItem('lab_session_user');
+            if (usuario) {
+                return { usuario: usuario, rol: null };
+            }
         }
     }
     return null;
@@ -2659,15 +2800,14 @@ console.log('📌 Redirect URI:', DRIVE_CONFIG.redirectUri);
     let folderPath = [];
 
     // ========== FUNCIONES DE AUTENTICACIÓN (Se mantiene igual) ==========
+
 function login() {
     const user = document.getElementById('loginUser').value.trim();
     const pass = document.getElementById('loginPass').value;
     const errorDiv = document.getElementById('loginError');
     
-// ============================================
-    // 📋 LISTA DE USUARIOS AUTORIZADOS
-    // ============================================
-    const usuarios = {
+    // 📋 USAR LA CONFIGURACIÓN GLOBAL
+    const usuarios = USUARIOS_CONFIG || {
         'RVPLAB': {
             password: 'Lab#2026.',
             nombre: 'Analista de Laboratorio',
@@ -2679,7 +2819,7 @@ function login() {
             rol: 'COORDINACIÓN'
         },
         'UNIDADLABRVP': {
-            password: '',
+            password: 'Unidad#2026.',
             nombre: 'Administrador del Sistema',
             rol: 'ADMINISTRADOR'
         },
@@ -2690,32 +2830,59 @@ function login() {
         // Obtener los datos del usuario
         const usuarioData = usuarios[user];
         currentUser = usuarioData.nombre;
+        currentUserRole = usuarioData.rol;
 
-        // ✅ GUARDAR LA SESIÓN
-        guardarSesion(currentUser);
+        // ✅ GUARDAR LA SESIÓN CON ROL
+        guardarSesion(currentUser, currentUserRole);
         
         document.getElementById('loginOverlay').style.display = 'none';
         document.getElementById('mainApp').style.display = 'block';
-        document.getElementById('userNameDisplay').textContent = 'Analista';
-        document.getElementById('userNameBadge').textContent = 'Analista';
+        
+        // ✅ ACTUALIZAR LA UI CON EL NOMBRE Y ROL REALES
+        actualizarUIUsuario(currentUser, currentUserRole);
+        
         errorDiv.style.display = 'none';
         initApp();
-        showToast('✅ Bienvenido al Panel de Documentación LAB');
+        showToast(`✅ Bienvenido ${currentUser} (${currentUserRole})`);
     } else {
         errorDiv.style.display = 'block';
-        errorDiv.textContent = '❌ Usuario o contraseña incorrectos';
+        if (!usuarios[user]) {
+            errorDiv.textContent = '❌ Usuario no encontrado. Seleccione un usuario de la lista.';
+        } else {
+            errorDiv.textContent = '❌ Contraseña incorrecta. Intente nuevamente.';
+        }
+        document.getElementById('loginPass').value = '';
+        document.getElementById('loginPass').focus();
     }
 }
 
 function logout() {
     if (confirm('¿Está seguro de cerrar sesión?')) {
         currentUser = null;
-        // ✅ LIMPIAR LA SESIÓN
-        guardarSesion(null);
+        currentUserRole = null;
+        guardarSesion(null, null);
         
         document.getElementById('mainApp').style.display = 'none';
         document.getElementById('loginOverlay').style.display = 'flex';
         document.getElementById('loginPass').value = '';
+        
+        // ✅ Restaurar la selección del primer usuario
+        const firstUser = Object.keys(USUARIOS_CONFIG || { 'RVPLAB': {} })[0];
+        if (firstUser) {
+            document.getElementById('loginUser').value = firstUser;
+            if (USUARIOS_CONFIG && USUARIOS_CONFIG[firstUser]) {
+                document.getElementById('loginPass').value = USUARIOS_CONFIG[firstUser].password;
+            }
+            // Actualizar selector visual
+            const options = document.querySelectorAll('.user-option');
+            options.forEach(opt => {
+                opt.classList.remove('selected');
+                if (opt.dataset.username === firstUser) {
+                    opt.classList.add('selected');
+                }
+            });
+        }
+        
         disconnectDrive();
         showToast('🔒 Sesión cerrada');
     }
@@ -3273,18 +3440,25 @@ function iniciarAplicacion() {
     const sesion = obtenerSesion();
     
     if (sesion) {
-        // ✅ Usuario ya autenticado - mostrar la aplicación
         currentUser = sesion.usuario;
         currentUserRole = sesion.rol || 'LABORATORIO';
         document.getElementById('loginOverlay').style.display = 'none';
         document.getElementById('mainApp').style.display = 'block';
         actualizarUIUsuario(currentUser, currentUserRole);
         initApp();
-        console.log(`✅ Sesión restaurada automáticamente: ${currentUser} (${currentUserRole})`);
+        console.log(`✅ Sesión restaurada: ${currentUser} (${currentUserRole})`);
     } else {
-        // ❌ No hay sesión - mostrar login
         document.getElementById('loginOverlay').style.display = 'flex';
         document.getElementById('mainApp').style.display = 'none';
+        cargarSelectorUsuarios();
+        
+        const firstUser = Object.keys(USUARIOS_CONFIG || { 'RVPLAB': {} })[0];
+        if (firstUser) {
+            document.getElementById('loginUser').value = firstUser;
+            if (USUARIOS_CONFIG && USUARIOS_CONFIG[firstUser]) {
+                document.getElementById('loginPass').value = USUARIOS_CONFIG[firstUser].password;
+            }
+        }
         console.log('🔐 No hay sesión activa, mostrando login');
     }
 }
