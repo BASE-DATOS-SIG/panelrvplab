@@ -10,6 +10,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.29/jspdf.plugin.autotable.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
+    <script src="config.js"></script>
     
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     
@@ -2057,6 +2058,75 @@ table .codigo {
     }
 }
 
+/* ============================================================== */
+/* ========== REPORTES ========== */
+/* ============================================================== */
+
+.reports-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 1.5rem;
+    margin-top: 1rem;
+}
+
+.report-card {
+    background: white;
+    border-radius: 16px;
+    padding: 1.8rem 1.5rem 1.5rem;
+    border: 1px solid #e2e8f0;
+    text-align: center;
+    transition: all 0.3s;
+    cursor: pointer;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+}
+
+.report-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 24px rgba(0,0,0,0.1);
+    border-color: #1a8a9c;
+}
+
+.report-card .report-card-icon {
+    font-size: 2.5rem;
+    margin-bottom: 0.5rem;
+}
+
+.report-card .report-card-title {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: #0a1628;
+    margin-bottom: 0.3rem;
+}
+
+.report-card .report-card-desc {
+    font-size: 0.85rem;
+    color: #64748b;
+    margin-bottom: 1rem;
+    line-height: 1.4;
+}
+
+/* Botón de reporte - estilo de la segunda imagen */
+.btn-report {
+    background: transparent;
+    color: #1a8a9c;
+    border: 2px solid #1a8a9c;
+    padding: 0.4rem 1.8rem;
+    border-radius: 40px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.btn-report:hover {
+    background: #1a8a9c;
+    color: white;
+    box-shadow: 0 4px 12px rgba(26, 138, 156, 0.3);
+}
+
 </style>
 
 </head>
@@ -2629,21 +2699,51 @@ function isProduction() {
 // ========== CONFIGURACIÓN DE SERVICIOS ==========
 // ==============================================================
 
-const CLOUDINARY_CONFIG = {
-    cloudName: 'z11uufz3',
-    uploadPreset: 'lab_uploads',
+// ✅ USAR CONFIG DESDE ARCHIVO EXTERNO
+// Si no existe CONFIG, usar valores de ejemplo (no funcionales)
+const CLOUDINARY_CONFIG = (typeof CONFIG !== 'undefined' && CONFIG.CLOUDINARY) ? CONFIG.CLOUDINARY : {
+    cloudName: 'TU_CLOUD_NAME',
+    uploadPreset: 'TU_UPLOAD_PRESET',
     folderBase: 'SIG_LABORATORIO'
 };
 
 const DRIVE_CONFIG = {
-    clientId: '549801807409-b3f34iagtn0br4q58s5439hlqnhtt518.apps.googleusercontent.com',
-    clientSecret: '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',
-    scope: 'https://www.googleapis.com/auth/drive.file',
-    discoveryDocs: ['https://www.googleapis.com/discovery/v1/apis/drive/v3/rest'],
+    clientId: (typeof CONFIG !== 'undefined' && CONFIG.DRIVE?.clientId) ? CONFIG.DRIVE.clientId : null,
+    clientSecret: (typeof CONFIG !== 'undefined' && CONFIG.DRIVE?.clientSecret) ? CONFIG.DRIVE.clientSecret : null,
+    scope: (typeof CONFIG !== 'undefined' && CONFIG.DRIVE?.scope) ? CONFIG.DRIVE.scope : 'https://www.googleapis.com/auth/drive.file',
+    discoveryDocs: (typeof CONFIG !== 'undefined' && CONFIG.DRIVE?.discoveryDocs) ? CONFIG.DRIVE.discoveryDocs : ['https://www.googleapis.com/discovery/v1/apis/drive/v3/rest'],
     redirectUri: getBaseUrl(),
 };
 
-const TEST_USER = 'sigredvitalpaipa@gmail.com';
+const TEST_USER = (typeof CONFIG !== 'undefined' && CONFIG.TEST_USER) ? CONFIG.TEST_USER : '';
+
+// ==============================================================
+// ========== VERIFICACIÓN DE CREDENCIALES ==========
+// ==============================================================
+
+function verificarCredenciales() {
+    const cloudConfigured = CLOUDINARY_CONFIG.cloudName && 
+                           CLOUDINARY_CONFIG.cloudName !== 'TU_CLOUD_NAME' &&
+                           CLOUDINARY_CONFIG.uploadPreset && 
+                           CLOUDINARY_CONFIG.uploadPreset !== 'TU_UPLOAD_PRESET';
+    
+    const driveConfigured = DRIVE_CONFIG.clientId && 
+                           DRIVE_CONFIG.clientId !== 'null' &&
+                           DRIVE_CONFIG.clientSecret && 
+                           DRIVE_CONFIG.clientSecret !== 'null';
+    
+    if (!cloudConfigured) {
+        console.warn('⚠️ Cloudinary no configurado. Crea config.js con tus credenciales.');
+    }
+    if (!driveConfigured) {
+        console.warn('⚠️ Google Drive no configurado. Crea config.js con tus credenciales.');
+    }
+    
+    return { cloudConfigured, driveConfigured };
+}
+
+// Ejecutar verificación al cargar
+verificarCredenciales();
 
 // Mensaje de depuración
 console.log('🔍 Entorno detectado:', isDevelopment() ? '🖥️ DESARROLLO LOCAL' : '🌐 PRODUCCIÓN');
@@ -2959,6 +3059,12 @@ async function getAuthUrl() {
 
 async function connectDrive() {
     try {
+        // ✅ VERIFICAR QUE GOOGLE DRIVE ESTÉ CONFIGURADO
+        if (!DRIVE_CONFIG.clientId || DRIVE_CONFIG.clientId === 'null') {
+            showToast('⚠️ Google Drive no está configurado. Revisa config.js', true);
+            return;
+        }
+        
         showLoading('Conectando a Google Drive...');
         
         // Verificar si ya hay un token guardado
@@ -2987,7 +3093,7 @@ async function connectDrive() {
             }
         }
 
-        const authUrl = await getAuthUrl(); // ✅ AQUÍ SE ESPERA EL URL COMPLETO
+        const authUrl = await getAuthUrl();
         window.location.href = authUrl;
 
     } catch (error) {
@@ -3290,66 +3396,72 @@ function diagnosticarDrive() {
         return 'auto';
     }
 
-    // ========== SUBIR ARCHIVO A CLOUDINARY (Se mantiene igual) ==========
-    function subirArchivoCloudinary(file, progressCallback) {
-        return new Promise((resolve, reject) => {
-            const ext = file.name.split('.').pop().toLowerCase();
-            if (!ALLOWED_EXTENSIONS.includes(ext)) {
-                reject(new Error(`Formato no permitido. Permitidos: ${ALLOWED_EXTENSIONS.join(', ')}`));
-                return;
-            }
-            if (file.size > MAX_FILE_SIZE) {
-                reject(new Error(`El archivo excede el tamaño máximo de ${MAX_FILE_SIZE / (1024 * 1024)}MB`));
-                return;
-            }
+// ========== SUBIR ARCHIVO A CLOUDINARY ==========
+function subirArchivoCloudinary(file, progressCallback) {
+    return new Promise((resolve, reject) => {
+        // ✅ VERIFICAR QUE CLOUDINARY ESTÉ CONFIGURADO
+        if (!CLOUDINARY_CONFIG.cloudName || CLOUDINARY_CONFIG.cloudName === 'TU_CLOUD_NAME') {
+            reject(new Error('Cloudinary no está configurado. Revisa config.js'));
+            return;
+        }
+        
+        const ext = file.name.split('.').pop().toLowerCase();
+        if (!ALLOWED_EXTENSIONS.includes(ext)) {
+            reject(new Error(`Formato no permitido. Permitidos: ${ALLOWED_EXTENSIONS.join(', ')}`));
+            return;
+        }
+        if (file.size > MAX_FILE_SIZE) {
+            reject(new Error(`El archivo excede el tamaño máximo de ${MAX_FILE_SIZE / (1024 * 1024)}MB`));
+            return;
+        }
 
-            const formData = new FormData();
-            formData.append('file', file);
-            formData.append('upload_preset', CLOUDINARY_CONFIG.uploadPreset);
-            formData.append('folder', CLOUDINARY_CONFIG.folderBase);
+        const formData = new FormData();
+        formData.append('file', file);
+        formData.append('upload_preset', CLOUDINARY_CONFIG.uploadPreset);
+        formData.append('folder', CLOUDINARY_CONFIG.folderBase);
 
-            const resourceType = determinarResourceType(file);
-            const finalResourceType = file.name.toLowerCase().endsWith('.zip') ? 'auto' : resourceType;
-            const xhr = new XMLHttpRequest();
-            
-            if (progressCallback) {
-                xhr.upload.addEventListener('progress', (e) => {
-                    if (e.lengthComputable) {
-                        const percent = Math.round((e.loaded / e.total) * 100);
-                        progressCallback(percent);
-                    }
-                });
-            }
-            
-            xhr.onload = () => {
-                if (xhr.status === 200) {
-                    try {
-                        const response = JSON.parse(xhr.responseText);
-                        resolve({ url: response.secure_url, publicId: response.public_id, nombre: file.name, size: response.bytes });
-                    } catch (e) {
-                        reject(new Error('Error al procesar la respuesta de Cloudinary'));
-                    }
-                } else {
-                    let errorMsg = `Error ${xhr.status}`;
-                    try {
-                        const errorData = JSON.parse(xhr.responseText);
-                        if (errorData.error && errorData.error.message) {
-                            errorMsg += `: ${errorData.error.message}`;
-                        }
-                    } catch (e) {}
-                    reject(new Error(`Error al subir a Cloudinary (${errorMsg})`));
+        const resourceType = determinarResourceType(file);
+        const finalResourceType = file.name.toLowerCase().endsWith('.zip') ? 'auto' : resourceType;
+        const xhr = new XMLHttpRequest();
+        
+        if (progressCallback) {
+            xhr.upload.addEventListener('progress', (e) => {
+                if (e.lengthComputable) {
+                    const percent = Math.round((e.loaded / e.total) * 100);
+                    progressCallback(percent);
                 }
-            };
-            
-            xhr.onerror = () => {
-                reject(new Error('Error de red al conectar con Cloudinary'));
-            };
-            
-            const uploadUrl = `https://api.cloudinary.com/v1_1/${CLOUDINARY_CONFIG.cloudName}/${finalResourceType}/upload`;
-            xhr.open('POST', uploadUrl);
-            xhr.send(formData);
-        });
-    }
+            });
+        }
+        
+        xhr.onload = () => {
+            if (xhr.status === 200) {
+                try {
+                    const response = JSON.parse(xhr.responseText);
+                    resolve({ url: response.secure_url, publicId: response.public_id, nombre: file.name, size: response.bytes });
+                } catch (e) {
+                    reject(new Error('Error al procesar la respuesta de Cloudinary'));
+                }
+            } else {
+                let errorMsg = `Error ${xhr.status}`;
+                try {
+                    const errorData = JSON.parse(xhr.responseText);
+                    if (errorData.error && errorData.error.message) {
+                        errorMsg += `: ${errorData.error.message}`;
+                    }
+                } catch (e) {}
+                reject(new Error(`Error al subir a Cloudinary (${errorMsg})`));
+            }
+        };
+        
+        xhr.onerror = () => {
+            reject(new Error('Error de red al conectar con Cloudinary'));
+        };
+        
+        const uploadUrl = `https://api.cloudinary.com/v1_1/${CLOUDINARY_CONFIG.cloudName}/${finalResourceType}/upload`;
+        xhr.open('POST', uploadUrl);
+        xhr.send(formData);
+    });
+}
 
 // ✅ MODIFICAR initApp
 function initApp() {
@@ -3390,7 +3502,7 @@ function initApp() {
                 id: data.user.id || 'unknown'
             };
             updateDriveUI();
-            showToast(`✅ Google Drive conectado automáticamente como ${driveUserInfo.email}`);
+            showToast(`✅ Google Drive conectado con ${driveUserInfo.email}`);
         })
         .catch(() => {
             localStorage.removeItem('drive_access_token');
@@ -3401,23 +3513,43 @@ function initApp() {
     handleDriveRedirect();
 }
 
-// ✅ MODIFICAR iniciarAplicacion
+// ==============================================================
+// ========== INICIALIZAR APLICACIÓN ==========
+// ==============================================================
+
 function iniciarAplicacion() {
+    // ✅ VERIFICAR CONFIGURACIÓN AL INICIAR
+    const { cloudConfigured, driveConfigured } = verificarCredenciales();
+    
+    // Mostrar advertencia si no hay configuración
+    if (!cloudConfigured || !driveConfigured) {
+        console.warn('⚠️ Algunos servicios no están configurados. Crea config.js desde config.example.js');
+        setTimeout(() => {
+            showToast('⚠️ Configuración incompleta. Revisa la consola.', true);
+        }, 2000);
+    }
+    
+    // Verificar si hay sesión activa
     const sesion = obtenerSesion();
     
     if (sesion) {
+        // ✅ Usuario ya autenticado - mostrar la aplicación
         currentUser = sesion.usuario;
         currentUserRole = sesion.rol || 'LABORATORIO';
         document.getElementById('loginOverlay').style.display = 'none';
         document.getElementById('mainApp').style.display = 'block';
         actualizarUIUsuario(currentUser, currentUserRole);
         initApp();
-        console.log(`✅ Sesión restaurada: ${currentUser} (${currentUserRole})`);
+        console.log(`✅ Sesión restaurada automáticamente: ${currentUser} (${currentUserRole})`);
     } else {
+        // ❌ No hay sesión - mostrar login
         document.getElementById('loginOverlay').style.display = 'flex';
         document.getElementById('mainApp').style.display = 'none';
+        
+        // ✅ Cargar el selector de usuarios
         cargarSelectorUsuarios();
         
+        // Establecer usuario por defecto
         const firstUser = Object.keys(USUARIOS_CONFIG || { 'RVPLAB': {} })[0];
         if (firstUser) {
             document.getElementById('loginUser').value = firstUser;
@@ -3425,7 +3557,8 @@ function iniciarAplicacion() {
                 document.getElementById('loginPass').value = USUARIOS_CONFIG[firstUser].password;
             }
         }
-        console.log('🔐 No hay sesión activa, mostrando login');
+        
+        console.log('🔐 No hay sesión activa, mostrando login con selector de usuarios');
     }
 }
 
@@ -3527,129 +3660,148 @@ function iniciarAplicacion() {
         return Math.round((cargadas / evidenciasRequeridas.length) * 100);
     }
 
-    // ========== RENDER DASHBOARD ==========
-    function renderDashboard() {
-        const container = document.getElementById('dynamicContent');
-        let totalItems = 0, cumplen = 0, noCumplen = 0, noAplica = 0, pendientes = 0;
-        let totalEvidencias = 0, evidenciasCargadas = 0;
-        
-        for (const chapterId in CHAPTERS) {
-            const items = CHAPTERS[chapterId].items || [];
-            items.forEach(item => {
-                const data = itemsData[item.codigo];
-                const evaluacion = evaluarCumplimiento(item, data);
-                totalItems++;
-                if (evaluacion === 'C') cumplen++;
-                else if (evaluacion === 'NC') noCumplen++;
-                else if (evaluacion === 'NA') noAplica++;
-                else pendientes++;
-                const evs = item.evidencias || [];
-                totalEvidencias += evs.length;
-                const cargadas = data?.evidenciasCargadas || [];
-                evs.forEach(ev => {
-                    if (cargadas.some(e => e.id === ev.id && e.cargada === true)) evidenciasCargadas++;
-                });
+   // ========== RENDER DASHBOARD ==========
+function renderDashboard() {
+    const container = document.getElementById('dynamicContent');
+    let totalItems = 0, cumplen = 0, noCumplen = 0, noAplica = 0, pendientes = 0;
+    let totalEvidencias = 0, evidenciasCargadas = 0;
+    
+    for (const chapterId in CHAPTERS) {
+        const items = CHAPTERS[chapterId].items || [];
+        items.forEach(item => {
+            const data = itemsData[item.codigo];
+            const evaluacion = evaluarCumplimiento(item, data);
+            totalItems++;
+            if (evaluacion === 'C') cumplen++;
+            else if (evaluacion === 'NC') noCumplen++;
+            else if (evaluacion === 'NA') noAplica++;
+            else pendientes++;
+            const evs = item.evidencias || [];
+            totalEvidencias += evs.length;
+            const cargadas = data?.evidenciasCargadas || [];
+            evs.forEach(ev => {
+                if (cargadas.some(e => e.id === ev.id && e.cargada === true)) evidenciasCargadas++;
             });
-        }
-        
-        const porcentajeCumplimiento = (totalItems - noAplica) > 0 ? Math.round((cumplen / (totalItems - noAplica)) * 100) : 0;
-        const porcentajeEvidencias = totalEvidencias > 0 ? Math.round((evidenciasCargadas / totalEvidencias) * 100) : 0;
-        const estadoColor = porcentajeCumplimiento >= 80 ? '#0d7a6b' : (porcentajeCumplimiento >= 50 ? '#d97706' : '#dc2626');
-        const estadoSistema = porcentajeCumplimiento >= 80 ? '✅ CONFORME' : (porcentajeCumplimiento >= 50 ? '⚠️ EN PROCESO' : '❌ NO CONFORME');
-        
-        let html = `
-            <div class="stats-grid">
-                <div class="stat-card green"><div class="icon">✅</div><div class="number">${cumplen}</div><div class="label">Cumplen (C)</div></div>
-                <div class="stat-card red"><div class="icon">❌</div><div class="number">${noCumplen}</div><div class="label">No Cumplen (NC)</div></div>
-                <div class="stat-card yellow"><div class="icon">⏭️</div><div class="number">${noAplica}</div><div class="label">No Aplica (NA)</div></div>
-                <div class="stat-card blue"><div class="icon">⏳</div><div class="number">${pendientes}</div><div class="label">Pendientes</div></div>
-                <div class="stat-card green"><div class="icon">📊</div><div class="number">${porcentajeCumplimiento}%</div><div class="label">Cumplimiento</div></div>
-                <div class="stat-card blue"><div class="icon">📎</div><div class="number">${porcentajeEvidencias}%</div><div class="label">Evidencias</div></div>
-            </div>
-                <div class="certificate-box certificate-box-border" style="border-color:' + estadoColor + ';">
-                <div class="certificate-seal">${porcentajeCumplimiento >= 80 ? '🏅' : '📋'}</div>
-                <div class="certificate-title" style="color:${estadoColor};">${estadoSistema}</div>
-                <div class="certificate-percentage" style="color:${estadoColor};">${porcentajeCumplimiento}%</div>
-                <div class="certificate-subtitle">Evaluación automática - Resolución 1619 de 2015</div>
-                <div class="dashboard-title" style="font-size:0.8rem; color:#4a7a9c;">${totalItems} requisitos • ${evidenciasCargadas} de ${totalEvidencias} evidencias</div>
-            </div>
-            <h3 class="dashboard-title">📋 Capítulos de la Resolución 1619 de 2015</h3>
-            <div class="chapter-grid">
-        `;
-        
-        for (const chapterId in CHAPTERS) {
-            const chapter = CHAPTERS[chapterId];
-            const items = chapter.items || [];
-            let completed = 0, evCargadas = 0, evTotal = 0;
-            items.forEach(item => {
-                const data = itemsData[item.codigo];
-                const evaluacion = evaluarCumplimiento(item, data);
-                if (evaluacion === 'C' || evaluacion === 'NA') completed++;
-                const evs = item.evidencias || [];
-                evTotal += evs.length;
-                const cargadas = data?.evidenciasCargadas || [];
-                evs.forEach(ev => {
-                    if (cargadas.some(e => e.id === ev.id && e.cargada === true)) evCargadas++;
-                });
-            });
-            const progress = items.length > 0 ? Math.round((completed / items.length) * 100) : 0;
-            const pctEv = evTotal > 0 ? Math.round((evCargadas / evTotal) * 100) : 0;
-            html += `
-                <div class="chapter-card" onclick="navigateToChapter(${chapterId})">
-                    <div class="chapter-card-header">
-                        <span class="title"><i class="fas ${chapter.icon}"></i> Capítulo ${chapterId}</span>
-                        <span class="text-muted" style="font-size:0.6rem;">${completed}/${items.length}</span>
-                    </div>
-                    <div class="report-card-title" style="font-size:0.75rem;">${chapter.name}</div>
-                    <div class="chapter-stats">
-                        <span>📊 ${progress}%</span>
-                        <span>📎 ${pctEv}%</span>
-                    </div>
-                    <div class="chapter-progress">
-                        <div class="chapter-progress-bar" style="width:${progress}%;"></div>
-                    </div>
-                </div>
-            `;
-        }
-        
-        html += `
-            </div>
-            <h3 class="dashboard-title">🔄 Últimas Actividades</h3>
-            <div class="table-container">
-                <div class="header">
-                    <h3>Historial de Evaluaciones</h3>
-                    <button class="btn btn-primary btn-sm" onclick="navigateToView('audit')"><i class="fas fa-history"></i> Ver todos</button>
-                </div>
-                <div class="table-wrapper">
-                    <table>
-                        <thead><tr><th>Fecha</th><th>Ítem</th><th>Evaluación</th><th>Evidencias</th><th>Usuario</th></tr></thead>
-                        <tbody>
-        `;
-        
-        const recentAudit = auditLog.slice(0, 10);
-        if (recentAudit.length === 0) {
-            html += `<tr><td colspan="5" class="audit-empty">No hay registros de auditoría</td></tr>`;
-        } else {
-            recentAudit.forEach(log => {
-                const fecha = log.timestamp || 'N/A';
-                const evaluacionMap = { 'C': '✅ Cumple', 'NC': '❌ No Cumple', 'NA': '⏭️ No Aplica', 'P': '⏳ Pendiente' };
-                html += `
-                    <tr>
-                        <td class="table-text">${fecha}</td>
-                        <td><span class="codigo">${log.itemCodigo}</span></td>
-                        <td><span class="status-badge ${log.evaluacion === 'C' ? 'cumple' : log.evaluacion === 'NC' ? 'no-cumple' : log.evaluacion === 'NA' ? 'no-aplica' : 'pendiente'}">${evaluacionMap[log.evaluacion] || log.evaluacion}</span></td>
-                        <td>${log.evidenciasCargadas || 0}/${log.evidenciasRequeridas || 0}</td>
-                        <td>${log.usuario || 'Sistema'}</td>
-                    </tr>
-                `;
-            });
-        }
-        
-        html += `</tbody></table></div></div>`;
-        container.innerHTML = html;
-        document.getElementById('pageTitle').textContent = 'LABORATORIO';
-        document.getElementById('pageSubtitle').textContent = 'SISTEMA DE GESTIÓN DE CALIDAD PARA LABORATORIO DE AGUA POTABLE';
+        });
     }
+    
+    const porcentajeCumplimiento = (totalItems - noAplica) > 0 ? Math.round((cumplen / (totalItems - noAplica)) * 100) : 0;
+    const porcentajeEvidencias = totalEvidencias > 0 ? Math.round((evidenciasCargadas / totalEvidencias) * 100) : 0;
+    const estadoColor = porcentajeCumplimiento >= 80 ? '#0d7a6b' : (porcentajeCumplimiento >= 50 ? '#d97706' : '#dc2626');
+    const estadoSistema = porcentajeCumplimiento >= 80 ? '✅ CONFORME' : (porcentajeCumplimiento >= 50 ? '⚠️ EN PROCESO' : '❌ NO CONFORME');
+    
+    // ✅ VERIFICAR CONFIGURACIÓN
+    const { cloudConfigured, driveConfigured } = verificarCredenciales();
+    let configAlerts = '';
+    if (!cloudConfigured || !driveConfigured) {
+        configAlerts = `
+            <div style="background: #fef3c7; border: 1px solid #f59e0b; border-radius: 12px; padding: 0.8rem 1rem; margin-bottom: 1.5rem; display: flex; align-items: center; gap: 0.8rem;">
+                <span style="font-size: 1.5rem;">⚠️</span>
+                <div>
+                    <strong style="color: #92400e;">Configuración incompleta</strong>
+                    <p style="color: #78350f; margin: 0; font-size: 0.85rem;">
+                        ${!cloudConfigured ? '❌ Cloudinary no configurado (crea config.js). ' : '✅ Cloudinary configurado. '}
+                        ${!driveConfigured ? '❌ Google Drive no configurado (crea config.js).' : '✅ Google Drive configurado.'}
+                    </p>
+                </div>
+            </div>
+        `;
+    }
+    
+    let html = `
+        <div class="stats-grid">
+            <div class="stat-card green"><div class="icon">✅</div><div class="number">${cumplen}</div><div class="label">Cumplen (C)</div></div>
+            <div class="stat-card red"><div class="icon">❌</div><div class="number">${noCumplen}</div><div class="label">No Cumplen (NC)</div></div>
+            <div class="stat-card yellow"><div class="icon">⏭️</div><div class="number">${noAplica}</div><div class="label">No Aplica (NA)</div></div>
+            <div class="stat-card blue"><div class="icon">⏳</div><div class="number">${pendientes}</div><div class="label">Pendientes</div></div>
+            <div class="stat-card green"><div class="icon">📊</div><div class="number">${porcentajeCumplimiento}%</div><div class="label">Cumplimiento</div></div>
+            <div class="stat-card blue"><div class="icon">📎</div><div class="number">${porcentajeEvidencias}%</div><div class="label">Evidencias</div></div>
+        </div>
+        ${configAlerts}
+        <div class="certificate-box certificate-box-border" style="border-color:' + estadoColor + ';">
+            <div class="certificate-seal">${porcentajeCumplimiento >= 80 ? '🏅' : '📋'}</div>
+            <div class="certificate-title" style="color:${estadoColor};">${estadoSistema}</div>
+            <div class="certificate-percentage" style="color:${estadoColor};">${porcentajeCumplimiento}%</div>
+            <div class="certificate-subtitle">Evaluación automática - Resolución 1619 de 2015</div>
+            <div class="dashboard-title" style="font-size:0.8rem; color:#4a7a9c;">${totalItems} requisitos • ${evidenciasCargadas} de ${totalEvidencias} evidencias</div>
+        </div>
+        <h3 class="dashboard-title">📋 Capítulos de la Resolución 1619 de 2015</h3>
+        <div class="chapter-grid">
+    `;
+    
+    for (const chapterId in CHAPTERS) {
+        const chapter = CHAPTERS[chapterId];
+        const items = chapter.items || [];
+        let completed = 0, evCargadas = 0, evTotal = 0;
+        items.forEach(item => {
+            const data = itemsData[item.codigo];
+            const evaluacion = evaluarCumplimiento(item, data);
+            if (evaluacion === 'C' || evaluacion === 'NA') completed++;
+            const evs = item.evidencias || [];
+            evTotal += evs.length;
+            const cargadas = data?.evidenciasCargadas || [];
+            evs.forEach(ev => {
+                if (cargadas.some(e => e.id === ev.id && e.cargada === true)) evCargadas++;
+            });
+        });
+        const progress = items.length > 0 ? Math.round((completed / items.length) * 100) : 0;
+        const pctEv = evTotal > 0 ? Math.round((evCargadas / evTotal) * 100) : 0;
+        html += `
+            <div class="chapter-card" onclick="navigateToChapter(${chapterId})">
+                <div class="chapter-card-header">
+                    <span class="title"><i class="fas ${chapter.icon}"></i> Capítulo ${chapterId}</span>
+                    <span class="text-muted" style="font-size:0.6rem;">${completed}/${items.length}</span>
+                </div>
+                <div class="report-card-title" style="font-size:0.75rem;">${chapter.name}</div>
+                <div class="chapter-stats">
+                    <span>📊 ${progress}%</span>
+                    <span>📎 ${pctEv}%</span>
+                </div>
+                <div class="chapter-progress">
+                    <div class="chapter-progress-bar" style="width:${progress}%;"></div>
+                </div>
+            </div>
+        `;
+    }
+    
+    html += `
+        </div>
+        <h3 class="dashboard-title">🔄 Últimas Actividades</h3>
+        <div class="table-container">
+            <div class="header">
+                <h3>Historial de Evaluaciones</h3>
+                <button class="btn btn-primary btn-sm" onclick="navigateToView('audit')"><i class="fas fa-history"></i> Ver todos</button>
+            </div>
+            <div class="table-wrapper">
+                <table>
+                    <thead><tr><th>Fecha</th><th>Ítem</th><th>Evaluación</th><th>Evidencias</th><th>Usuario</th></tr></thead>
+                    <tbody>
+    `;
+    
+    const recentAudit = auditLog.slice(0, 10);
+    if (recentAudit.length === 0) {
+        html += `<tr><td colspan="5" class="audit-empty">No hay registros de auditoría</td></tr>`;
+    } else {
+        recentAudit.forEach(log => {
+            const fecha = log.timestamp || 'N/A';
+            const evaluacionMap = { 'C': '✅ Cumple', 'NC': '❌ No Cumple', 'NA': '⏭️ No Aplica', 'P': '⏳ Pendiente' };
+            html += `
+                <tr>
+                    <td class="table-text">${fecha}</td>
+                    <td><span class="codigo">${log.itemCodigo}</span></td>
+                    <td><span class="status-badge ${log.evaluacion === 'C' ? 'cumple' : log.evaluacion === 'NC' ? 'no-cumple' : log.evaluacion === 'NA' ? 'no-aplica' : 'pendiente'}">${evaluacionMap[log.evaluacion] || log.evaluacion}</span></td>
+                    <td>${log.evidenciasCargadas || 0}/${log.evidenciasRequeridas || 0}</td>
+                    <td>${log.usuario || 'Sistema'}</td>
+                </tr>
+            `;
+        });
+    }
+    
+    html += `</tbody></table></div></div>`;
+    container.innerHTML = html;
+    document.getElementById('pageTitle').textContent = 'LABORATORIO';
+    document.getElementById('pageSubtitle').textContent = 'SISTEMA DE GESTIÓN DE CALIDAD PARA LABORATORIO DE AGUA POTABLE';
+}
 
         // ========== RENDER CAPÍTULO ==========
     function renderChapter(chapterId) {
@@ -4068,40 +4220,40 @@ function renderRepository() {
         document.getElementById('pageSubtitle').textContent = 'Resolución 1619 de 2015';
     }
 
-        // ========== RENDER REPORTES ==========
-    function renderReports() {
-        const container = document.getElementById('dynamicContent');
-        container.innerHTML = `
-            <div class="audit-header">
-                <div>
-                    <h2 class="audit-title"><i class="fas fa-file-pdf"></i> Reportes del Sistema</h2>
-                    <p class="audit-subtitle">Exporte informes y certificados del sistema</p>
-                </div>
+// ========== RENDER REPORTES ==========
+function renderReports() {
+    const container = document.getElementById('dynamicContent');
+    container.innerHTML = `
+        <div class="audit-header">
+            <div>
+                <h2 class="audit-title"><i class="fas fa-file-pdf"></i> Reportes del Sistema</h2>
+                <p class="audit-subtitle">Exporte informes y certificados del sistema</p>
             </div>
-            <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(250px,1fr)); gap:1rem;">
-                <div class="report-card" onclick="exportAllChaptersPDF()" style="border-left:4px solid #1a8a9c;">
-                    <div class="report-card-icon">📚</div>
-                    <div class="report-card-title">Reporte Completo</div>
-                    <div class="report-card-desc">Todos los capítulos de la Resolución 1619</div>
-                    <span class="report-card-tag" style="background:#1a8a9c;">Exportar PDF</span>
-                </div>
-                <div class="report-card" onclick="exportAuditPDF()" style="border-left:4px solid #d97706;">
-                    <div class="report-card-icon">📋</div>
-                    <div class="report-card-title">Bitácora de Auditoría</div>
-                    <div class="report-card-desc">Historial completo de evaluaciones</div>
-                    <span class="report-card-tag" style="background:#d97706;">Exportar PDF</span>
-                </div>
-                <div class="report-card" onclick="exportCertificatePDF()" style="border-left:4px solid #0d7a6b;">
-                    <div class="report-card-icon">🏅</div>
-                    <div class="report-card-title">Certificado de Cumplimiento</div>
-                    <div class="report-card-desc">Estado de cumplimiento general</div>
-                    <span class="report-card-tag" style="background:#0d7a6b;">Exportar PDF</span>
-                </div>
+        </div>
+        <div class="reports-grid">
+            <div class="report-card" onclick="exportAllChaptersPDF()">
+                <div class="report-card-icon">📚</div>
+                <div class="report-card-title">Reporte Completo</div>
+                <div class="report-card-desc">Todos los capítulos de la Resolución 1619</div>
+                <button class="btn btn-report">Exportar PDF</button>
             </div>
-        `;
-        document.getElementById('pageTitle').textContent = 'Reportes';
-        document.getElementById('pageSubtitle').textContent = 'Exporte informes y certificados';
-    }
+            <div class="report-card" onclick="exportAuditPDF()">
+                <div class="report-card-icon">📋</div>
+                <div class="report-card-title">Bitácora de Auditoría</div>
+                <div class="report-card-desc">Historial completo de evaluaciones</div>
+                <button class="btn btn-report">Exportar PDF</button>
+            </div>
+            <div class="report-card" onclick="exportCertificatePDF()">
+                <div class="report-card-icon">🏅</div>
+                <div class="report-card-title">Certificado de Cumplimiento</div>
+                <div class="report-card-desc">Estado de cumplimiento general</div>
+                <button class="btn btn-report">Exportar PDF</button>
+            </div>
+        </div>
+    `;
+    document.getElementById('pageTitle').textContent = 'Reportes';
+    document.getElementById('pageSubtitle').textContent = 'Exporte informes y certificados';
+}
 
     // ========== SINCRONIZAR CON GOOGLE DRIVE (Se mantiene igual) ==========
     async function syncDriveFiles() {
