@@ -1723,383 +1723,256 @@ table .codigo {
 }
 
 /* ============================================================== */
-/* ========== REPOSITORIO DOCUMENTAL - VERSIÓN PROFESIONAL ========== */
+/* ========== REPOSITORIO PROFESIONAL - ESTILOS ========== */
 /* ============================================================== */
 
-/* ===== CONTENEDOR PRINCIPAL ===== */
-.repo-grid {
+/* Panel de estadísticas */
+.repo-stats-panel {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-    gap: 1.5rem;
-    margin-top: 0.5rem;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 1rem;
+    margin-bottom: 1.5rem;
 }
 
-/* ===== TARJETA DE DOCUMENTO ===== */
-.repo-item {
-    background: #ffffff;
-    border-radius: 20px;
-    padding: 1.5rem 1.2rem;
-    border: 1px solid #e8edf4;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.04);
-    min-height: 220px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: flex-start;
-    position: relative;
-}
-
-.repo-item:hover {
-    border-color: #1a8a9c;
-    transform: translateY(-6px);
-    box-shadow: 0 12px 35px rgba(26, 138, 156, 0.13);
-    background: #fafdff;
-}
-
-/* ===== ICONO DEL DOCUMENTO ===== */
-.repo-item-icon {
-    font-size: 3.5rem;
-    color: #1a8a9c;
-    margin-bottom: 0.5rem;
-    transition: transform 0.3s ease;
+.stat-item {
+    background: white;
+    border-radius: 12px;
+    padding: 0.8rem 1rem;
+    border: 1px solid #dce8f4;
     text-align: center;
-    width: 100%;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
 }
 
-.repo-item:hover .repo-item-icon {
-    transform: scale(1.08);
+.stat-number {
+    display: block;
+    font-size: 1.6rem;
+    font-weight: 800;
+    color: #0a1628;
+    line-height: 1.2;
 }
 
-/* Colores por tipo */
-.repo-folder .repo-item-icon {
-    color: #e8a838;
-}
-.repo-file.cloudinary .repo-item-icon {
-    color: #1a8a9c;
-}
-.repo-file.drive .repo-item-icon {
-    color: #4285F4;
-}
-
-/* ===== NOMBRE DEL DOCUMENTO ===== */
-.repo-item-name {
-    font-weight: 700;
-    font-size: 1.15rem;
-    color: #0a1a2a;
-    margin-top: 0.1rem;
-    word-break: break-word;
-    line-height: 1.4;
-    text-align: center;
-    width: 100%;
-    min-height: 2.8rem;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-/* ===== TIPO DE DOCUMENTO (BADGE) ===== */
-.repo-tag {
-    background: #eef4fa;
-    padding: 0.2rem 0.9rem;
-    border-radius: 30px;
-    font-size: 0.7rem;
-    font-weight: 600;
-    color: #2a4a6a;
-    display: inline-block;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    margin-top: 0.2rem;
-}
-
-/* ===== TAGS DE ALMACENAMIENTO ===== */
-.repo-cloud-tag {
-    background: #1a8a9c;
-    color: #ffffff;
-    padding: 0.15rem 0.7rem;
-    border-radius: 30px;
-    font-size: 0.6rem;
-    font-weight: 700;
-    display: inline-block;
-    letter-spacing: 0.3px;
-}
-
-.repo-drive-tag {
-    background: #4285F4;
-    color: #ffffff;
-    padding: 0.15rem 0.7rem;
-    border-radius: 30px;
-    font-size: 0.6rem;
-    font-weight: 700;
-    display: inline-block;
-    letter-spacing: 0.3px;
-}
-
-/* ===== FILA DE TAGS ===== */
-.repo-tags-row {
-    display: flex;
-    gap: 0.4rem;
-    justify-content: center;
-    flex-wrap: wrap;
-    margin-top: 0.4rem;
-}
-
-/* ===== METADATOS ===== */
-.repo-item-meta {
+.stat-label {
     font-size: 0.75rem;
-    color: #5a7a8a;
-    margin-top: 0.5rem;
-    line-height: 1.7;
-    text-align: center;
-    width: 100%;
-}
-
-/* ===== FECHA ===== */
-.repo-date {
-    font-size: 0.65rem;
-    color: #8aa0b0;
-    margin-top: 0.1rem;
-}
-
-/* ===== USUARIO ===== */
-.repo-user {
-    font-size: 0.65rem;
-    color: #5a7a8a;
-    font-weight: 500;
-    margin-top: 0.05rem;
-}
-
-/* ===== ACCIONES ===== */
-.repo-actions {
-    margin-top: 0.8rem;
-    display: flex;
-    gap: 0.5rem;
-    justify-content: center;
-    flex-wrap: wrap;
-    width: 100%;
-    border-top: 1px solid #edf2f7;
-    padding-top: 0.8rem;
-}
-
-.repo-actions-buttons {
-    padding: 0.3rem 1rem;
-    font-size: 0.7rem;
-    border-radius: 30px;
-    border: none;
-    cursor: pointer;
-    transition: all 0.25s ease;
-    background: #f0f5fa;
-    color: #1a3a5a;
+    color: #4a7a9c;
     font-weight: 600;
-    display: inline-flex;
-    align-items: center;
-    gap: 0.4rem;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
 }
 
-.repo-actions-buttons:hover {
-    background: #1a8a9c;
-    color: #ffffff;
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(26, 138, 156, 0.25);
-}
-
-.repo-actions-buttons.btn-danger:hover {
-    background: #dc2626;
-    box-shadow: 0 4px 12px rgba(220, 38, 38, 0.25);
-}
-
-/* ===== CABECERA DEL REPOSITORIO ===== */
-.repo-header {
+/* Barra de herramientas */
+.repo-toolbar {
     display: flex;
     justify-content: space-between;
     align-items: center;
     flex-wrap: wrap;
-    gap: 1rem;
+    gap: 0.8rem;
+    background: white;
+    padding: 0.8rem 1.2rem;
+    border-radius: 12px;
+    border: 1px solid #dce8f4;
     margin-bottom: 1.5rem;
-    padding: 1.2rem 1.5rem;
-    background: #ffffff;
-    border-radius: 16px;
-    border: 1px solid #e8edf4;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
 }
 
-.repo-header-title {
-    color: #0a1a2a;
-    font-size: 1.4rem;
-    font-weight: 700;
-}
-
-.repo-header-desc {
-    color: #4a6a7a;
+.repo-breadcrumb {
     font-size: 0.85rem;
-    margin-top: 0.1rem;
-}
-
-.repo-header-actions {
+    color: #1a3a5a;
+    font-weight: 500;
     display: flex;
-    gap: 0.6rem;
+    align-items: center;
+    gap: 0.3rem;
     flex-wrap: wrap;
 }
 
-/* ===== BREADCRUMB ===== */
-.breadcrumb {
-    font-size: 0.9rem;
-    padding: 0.4rem 1rem;
-    background: #e8f4fa;
-    border-radius: 30px;
-    display: inline-block;
-    color: #0a5a6a;
-    font-weight: 600;
-}
-
-.breadcrumb span {
+.repo-breadcrumb .breadcrumb-item {
     cursor: pointer;
-    color: #0a5a6a;
+    color: #1a8a9c;
+    font-weight: 600;
     transition: color 0.2s;
 }
 
-.breadcrumb span:hover {
+.repo-breadcrumb .breadcrumb-item:hover {
+    color: #0d6b7a;
     text-decoration: underline;
-    color: #0a3a4a;
 }
 
-.breadcrumb .sep {
-    color: #7a9aab;
+.repo-breadcrumb .breadcrumb-sep {
+    color: #8ba3bc;
     cursor: default;
 }
 
-/* ===== ESTADO VACÍO ===== */
-.repo-empty-box {
-    grid-column: 1/-1;
-    text-align: center;
-    padding: 4rem 2rem;
-    color: #4a6a7a;
-    background: #f8fbfe;
-    border-radius: 20px;
-    border: 2px dashed #dce4ec;
-}
-
-.repo-empty-icon {
-    font-size: 4rem;
-    color: #8aaabc;
-    margin-bottom: 0.8rem;
-}
-
-.repo-empty-text {
-    font-size: 1.1rem;
-    color: #4a6a7a;
-    margin-top: 0.5rem;
-}
-
-.repo-empty-actions {
-    margin-top: 1.2rem;
+.repo-actions {
     display: flex;
-    gap: 0.8rem;
-    justify-content: center;
+    gap: 0.5rem;
+    flex-wrap: wrap;
 }
 
-/* ============================================================== */
-/* ========== VISTA EN LISTA (OPCIONAL) ========== */
-/* ============================================================== */
-
-.repo-doc-card {
-    background: #ffffff;
-    border-radius: 14px;
-    padding: 1rem 1.2rem;
-    border: 1px solid #e8edf4;
-    display: flex;
-    align-items: center;
-    gap: 1.2rem;
-    margin-bottom: 0.6rem;
-    transition: all 0.2s;
-    cursor: pointer;
+/* Tabla de documentos */
+.repo-table-container {
+    background: white;
+    border-radius: 12px;
+    border: 1px solid #dce8f4;
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
 }
 
-.repo-doc-card:hover {
-    border-color: #1a8a9c;
-    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06);
-    transform: translateX(6px);
+.repo-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.85rem;
 }
 
-.repo-doc-icon {
-    font-size: 2rem;
-    color: #1a8a9c;
-    min-width: 44px;
-    text-align: center;
+.repo-table thead {
+    background: #f8fafc;
+    border-bottom: 2px solid #dce8f4;
 }
 
-.repo-doc-info {
-    flex: 1;
-}
-
-.repo-doc-name {
-    font-weight: 600;
-    font-size: 1rem;
-    color: #0a1a2a;
-}
-
-.repo-doc-meta {
+.repo-table th {
+    text-align: left;
+    padding: 0.8rem 1rem;
+    font-weight: 700;
+    color: #1a3a5a;
     font-size: 0.75rem;
-    color: #5a7a8a;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
 }
 
-.repo-doc-type {
+.repo-table td {
+    padding: 0.7rem 1rem;
+    border-bottom: 1px solid #f0f4f9;
+    vertical-align: middle;
+}
+
+.repo-row {
+    transition: background 0.15s ease;
+}
+
+.repo-row:hover {
+    background: #f5faff;
+}
+
+.repo-folder-row {
+    font-weight: 600;
+    color: #0a1628;
+}
+
+.repo-folder-row:hover {
+    background: #f5faff;
+}
+
+/* Badges de tipo de archivo */
+.repo-file-type-badge {
+    display: inline-block;
+    padding: 0.15rem 0.6rem;
+    border-radius: 20px;
+    font-size: 0.65rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+}
+
+.type-pdf { background: #fee2e2; color: #dc2626; }
+.type-excel { background: #d1f5d1; color: #0d7a3b; }
+.type-word { background: #dbeafe; color: #2563eb; }
+.type-zip { background: #fef3c7; color: #b45309; }
+.type-image { background: #f3e8ff; color: #7c3aed; }
+.type-folder { background: #dce8f4; color: #1a3a5a; }
+.type-other { background: #f0f4f9; color: #4a7a9c; }
+
+/* Badges de almacenamiento */
+.repo-storage-badge {
+    display: inline-block;
+    padding: 0.15rem 0.5rem;
+    border-radius: 20px;
     font-size: 0.6rem;
     font-weight: 700;
-    padding: 0.15rem 0.7rem;
-    border-radius: 30px;
-    background: #eef4fa;
-    color: #1a3a5a;
+    letter-spacing: 0.2px;
 }
 
-/* ===== CAPÍTULOS (UNIFICADO) ===== */
-.chapter-card {
-    background: white;
-    border-radius: 16px;
-    padding: 1rem 1.2rem;
-    border: 1px solid #dce8f4;
+.repo-storage-badge.cloud {
+    background: #d1f5f0;
+    color: #0d7a6b;
+}
+
+.repo-storage-badge.drive {
+    background: #dbeafe;
+    color: #2563eb;
+}
+
+/* Botones de acción en fila */
+.repo-row-actions {
+    display: inline-flex;
+    gap: 2px;
+}
+
+.repo-action-btn {
+    padding: 0.15rem 0.4rem;
+    font-size: 0.6rem;
+    border-radius: 8px;
+    border: none;
     cursor: pointer;
+    background: transparent;
+    color: #94a3b8;
     transition: all 0.2s;
 }
 
-.chapter-card:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
-    border-color: #1a8a9c;
+.repo-action-btn:hover {
+    background: #fee2e2;
+    color: #dc2626;
 }
 
-.chapter-progress {
-    height: 4px;
-    background: #dce8f4;
-    border-radius: 4px;
-    overflow: hidden;
-    margin-top: 0.3rem;
+.repo-action-btn.btn-danger:hover {
+    background: #fee2e2;
+    color: #dc2626;
 }
 
-.chapter-progress-bar {
-    height: 100%;
-    background: linear-gradient(90deg, #1a8a9c, #4fc3f7);
-    border-radius: 4px;
-    transition: width 0.5s ease;
-}
-
-.chapter-stats {
-    display: flex;
-    gap: 0.8rem;
-    margin-top: 0.3rem;
-    font-size: 0.65rem;
+/* Fila vacía */
+.repo-empty-row {
+    text-align: center;
+    padding: 2.5rem 1rem;
     color: #4a7a9c;
+    font-size: 0.95rem;
 }
 
-.chapter-card-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 0.3rem;
-    padding: 0;
-    border: none;
-    box-shadow: none;
+/* Responsive */
+@media (max-width: 768px) {
+    .repo-stats-panel {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 0.5rem;
+    }
+    .stat-item {
+        padding: 0.5rem;
+    }
+    .stat-number {
+        font-size: 1.2rem;
+    }
+    .repo-toolbar {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    .repo-actions {
+        justify-content: stretch;
+    }
+    .repo-actions .btn {
+        flex: 1;
+        justify-content: center;
+        font-size: 0.75rem;
+        padding: 0.4rem 0.6rem;
+    }
+    .repo-table th,
+    .repo-table td {
+        padding: 0.5rem 0.6rem;
+        font-size: 0.75rem;
+    }
+    .repo-table th:nth-child(2),
+    .repo-table td:nth-child(2),
+    .repo-table th:nth-child(3),
+    .repo-table td:nth-child(3) {
+        display: none; /* Oculta Fecha y Tipo en móvil */
+    }
+    .repo-breadcrumb {
+        font-size: 0.7rem;
+    }
 }
 
 /* ============================================================== */
@@ -2123,20 +1996,6 @@ table .codigo {
 .table-row-cursor { cursor: pointer; }
 .table-type-badge { font-size: 0.6rem; }
 
-.repo-header { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.8rem; margin-bottom: 1rem; }
-.repo-header-title { color: #0a1628; font-size: 1.1rem; }
-.repo-header-desc { color: #4a7a9c; font-size: 0.75rem; }
-.repo-header-actions { display: flex; gap: 0.5rem; flex-wrap: wrap; }
-.repo-empty-box { grid-column: 1/-1; text-align: center; padding: 2rem; color: #4a7a9c; background: white; border-radius: 16px; border: 1px solid #dce8f4; }
-.repo-empty-icon { font-size: 2.5rem; color: #8ba3bc; }
-.repo-empty-text { margin-top: 0.5rem; }
-.repo-empty-actions { margin-top: 0.5rem; display: flex; gap: 0.5rem; justify-content: center; }
-.repo-item-meta { font-size: 0.6rem; color: #4a7a9c; }
-.repo-tag { background: #dce8f4; padding: 0.1rem 0.4rem; border-radius: 12px; }
-.repo-cloud-tag { background: #1a8a9c; color: white; padding: 0.1rem 0.4rem; border-radius: 12px; font-size: 0.5rem; margin-left: 0.2rem; }
-.repo-drive-tag { background: #4285F4; color: white; padding: 0.1rem 0.4rem; border-radius: 12px; font-size: 0.5rem; margin-left: 0.2rem; }
-.repo-actions-buttons { padding: 0.1rem 0.5rem; font-size: 0.6rem; }
-
 .audit-header { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.8rem; margin-bottom: 1rem; }
 .audit-title { color: #0a1628; font-size: 1.1rem; }
 .audit-subtitle { color: #4a7a9c; font-size: 0.75rem; }
@@ -2145,12 +2004,6 @@ table .codigo {
 .certificate-box-border { border: 3px solid; }
 .certificate-info-text { margin-top: 0.8rem; text-align: left; max-width: 450px; margin: 0 auto; font-size: 0.75rem; }
 .certificate-footer-text { margin-top: 0.8rem; padding-top: 0.8rem; border-top: 1px solid #dce8f4; font-size: 0.65rem; color: #4a7a9c; }
-
-.report-card { background: white; border-radius: 16px; padding: 1rem 1.2rem; border: 1px solid #dce8f4; cursor: pointer; }
-.report-card-icon { font-size: 2rem; }
-.report-card-title { font-weight: 700; font-size: 0.95rem; color: #0a1628; }
-.report-card-desc { font-size: 0.7rem; color: #4a7a9c; }
-.report-card-tag { font-size: 0.6rem; padding: 0.15rem 0.6rem; border-radius: 20px; color: white; display: inline-block; margin-top: 0.3rem; }
 
 /* ============================================================== */
 /* ========== CLASES PARA REEMPLAZAR ESTILOS RESTANTES ========== */
@@ -3685,110 +3538,159 @@ function iniciarAplicacion() {
         document.getElementById('pageSubtitle').textContent = `${chapter.items.length} requisitos de evaluación`;
     }
 
-        // ========== RENDER REPOSITORIO ==========
+        // ========== RENDER REPOSITORIO (VERSIÓN PROFESIONAL) ==========
     function renderRepository() {
         const container = document.getElementById('dynamicContent');
-        let breadcrumbHtml = `<span onclick="navigateToFolder(null)">📁 Raíz</span>`;
-        folderPath.forEach((f) => {
-            breadcrumbHtml += ` <span class="sep">›</span> `;
-            breadcrumbHtml += `<span onclick="navigateToFolder('${f.id}')">📁 ${f.nombre}</span>`;
+
+        // 1. Obtener estadísticas
+        const carpetas = repoDocuments.filter(d => d.esCarpeta === true);
+        const archivos = repoDocuments.filter(d => d.esCarpeta !== true);
+        const cloudFiles = archivos.filter(d => d.storage === 'cloudinary' || d.storage === 'cloudinary_drive' || d.storage === 'cloudinary_pending');
+        const driveFiles = archivos.filter(d => d.storage === 'drive' || d.storage === 'cloudinary_drive');
+
+        // 2. Construir Breadcrumbs
+        let breadcrumbHtml = `<span onclick="navigateToFolder(null)" class="breadcrumb-item">📁 Raíz</span>`;
+        folderPath.forEach((f, index) => {
+            breadcrumbHtml += ` <span class="breadcrumb-sep">›</span> `;
+            breadcrumbHtml += `<span onclick="navigateToFolder('${f.id}')" class="breadcrumb-item">📁 ${f.nombre}</span>`;
         });
-        
-        const items = repoDocuments.filter(d => d.parent === currentFolderId);
-        const folders = items.filter(d => d.esCarpeta === true);
-        const files = items.filter(d => d.esCarpeta !== true);
-        
-        const totalDocs = repoDocuments.length;
-        const carpetasCount = repoDocuments.filter(d => d.esCarpeta === true).length;
-        const archivosCount = totalDocs - carpetasCount;
-        const cloudFiles = repoDocuments.filter(d => d.storage === 'cloudinary').length;
-        const driveFiles = repoDocuments.filter(d => d.storage === 'drive').length;
-        
+
+        // 3. Obtener archivos de la carpeta actual
+        const itemsInFolder = repoDocuments.filter(d => d.parent === currentFolderId);
+        const foldersInFolder = itemsInFolder.filter(d => d.esCarpeta === true);
+        const filesInFolder = itemsInFolder.filter(d => d.esCarpeta !== true);
+
+        // 4. Construir HTML Principal
         let html = `
-            <div class="repo-header">
-                <div>
-                    <h2 class="repo-header-title"><i class="fas fa-folder-open"></i> Repositorio Documental</h2>
-                    <p class="repo-header-desc">
-                        <i class="fas fa-folder"></i> ${carpetasCount} carpetas • 
-                        <i class="fas fa-file"></i> ${archivosCount} documentos •
-                        <i class="fas fa-cloud"></i> ${cloudFiles} en Cloudinary •
-                        <i class="fab fa-google-drive"></i> ${driveFiles} en Google Drive
-                    </p>
-                    <div class="breadcrumb">📂 Ruta: ${breadcrumbHtml}</div>
+            <!-- PANEL DE ESTADÍSTICAS -->
+            <div class="repo-stats-panel">
+                <div class="stat-item"><span class="stat-number">${archivos.length}</span> <span class="stat-label">Documentos</span></div>
+                <div class="stat-item"><span class="stat-number">${carpetas.length}</span> <span class="stat-label">Carpetas</span></div>
+                <div class="stat-item"><span class="stat-number">${cloudFiles.length}</span> <span class="stat-label"><i class="fas fa-cloud"></i> Cloudinary</span></div>
+                <div class="stat-item"><span class="stat-number">${driveFiles.length}</span> <span class="stat-label"><i class="fab fa-google-drive"></i> Google Drive</span></div>
+            </div>
+
+            <!-- BARRA DE HERRAMIENTAS -->
+            <div class="repo-toolbar">
+                <div class="repo-breadcrumb">
+                    <i class="fas fa-folder-open"></i> ${breadcrumbHtml}
                 </div>
-                <div class="repo-header-actions">
+                <div class="repo-actions">
                     <button class="btn btn-primary btn-sm" onclick="openRepoModal()"><i class="fas fa-upload"></i> Subir Documento</button>
                     <button class="btn btn-success btn-sm" onclick="openFolderModal()"><i class="fas fa-folder-plus"></i> Nueva Carpeta</button>
-                    ${driveConnected ? `<button class="btn btn-drive btn-sm" onclick="syncDriveFiles()" style="padding:0.25rem 0.8rem; font-size:0.7rem;"><i class="fab fa-google-drive"></i> Sincronizar Drive</button>` : ''}
-                    <button class="btn btn-secondary btn-sm" onclick="loadRepoDocuments(); renderRepository();"><i class="fas fa-sync"></i></button>
+                    ${driveConnected ? `<button class="btn btn-drive btn-sm" onclick="syncDriveFiles()"><i class="fab fa-google-drive"></i> Sincronizar Drive</button>` : ''}
                 </div>
             </div>
-            <div class="repo-grid">
+
+            <!-- TABLA DE CONTENIDO -->
+            <div class="repo-table-container">
+                <table class="repo-table">
+                    <thead>
+                        <tr>
+                            <th style="width: 45%;">Nombre</th>
+                            <th style="width: 20%;">Fecha de modificación</th>
+                            <th style="width: 15%;">Tipo</th>
+                            <th style="width: 10%;">Tamaño</th>
+                            <th style="width: 10%;">Almacenamiento</th>
+                        </tr>
+                    </thead>
+                    <tbody>
         `;
-        
-        if (folders.length === 0 && files.length === 0) {
+
+        // --- Mostrar CARPETAS primero ---
+        if (foldersInFolder.length === 0 && filesInFolder.length === 0) {
             html += `
-                <div class="repo-empty-box">
-                    <i class="fas fa-folder-open repo-empty-icon"></i>
-                    <p class="repo-empty-text">Esta carpeta está vacía</p>
-                    <div class="repo-empty-actions">
-                        <button class="btn btn-primary btn-sm" onclick="openRepoModal()">Subir documento</button>
-                        <button class="btn btn-success btn-sm" onclick="openFolderModal()">Crear carpeta</button>
-                    </div>
-                </div>
+                <tr>
+                    <td colspan="5" class="repo-empty-row">
+                        <i class="fas fa-folder-open" style="font-size: 2rem; color: #8ba3bc; display: block; margin-bottom: 0.5rem;"></i>
+                        Esta carpeta está vacía
+                        <div style="margin-top: 0.5rem;">
+                            <button class="btn btn-primary btn-sm" onclick="openRepoModal()">Subir documento</button>
+                            <button class="btn btn-success btn-sm" onclick="openFolderModal()">Crear carpeta</button>
+                        </div>
+                    </td>
+                </tr>
             `;
+        } else {
+            // Mostrar Carpetas
+            foldersInFolder.forEach(folder => {
+                const fecha = folder.createdAt || 'N/A';
+                html += `
+                    <tr class="repo-row repo-folder-row" onclick="navigateToFolder('${folder.id}')" style="cursor: pointer;">
+                        <td><i class="fas fa-folder" style="color: #e8a838; margin-right: 8px;"></i> ${folder.nombre}</td>
+                        <td>${fecha}</td>
+                        <td><span class="repo-file-type-badge type-folder">Carpeta</span></td>
+                        <td>—</td>
+                        <td>
+                            <div class="repo-row-actions">
+                                <button class="btn btn-danger btn-sm repo-action-btn" onclick="event.stopPropagation(); deleteDocument('${folder.id}')"><i class="fas fa-trash"></i></button>
+                            </div>
+                        </td>
+                    </tr>
+                `;
+            });
+
+            // Mostrar Archivos
+            filesInFolder.forEach(doc => {
+                const fecha = doc.createdAt || 'N/A';
+                const fileSize = doc.fileSize ? (doc.fileSize / 1024).toFixed(1) + ' KB' : '—';
+                const iconMap = { 
+                    'reporte': 'fa-file-alt', 
+                    'resultado_externo': 'fa-file-export', 
+                    'manual': 'fa-book', 
+                    'procedimiento': 'fa-list-check', 
+                    'certificado': 'fa-certificate', 
+                    'otro': 'fa-file' 
+                };
+                const icon = iconMap[doc.tipo] || 'fa-file';
+                
+                // Determinar badge de tipo de archivo
+                let typeBadge = '<span class="repo-file-type-badge type-other">Documento</span>';
+                const fileName = (doc.fileName || '').toLowerCase();
+                if (fileName.endsWith('.pdf')) typeBadge = '<span class="repo-file-type-badge type-pdf">PDF</span>';
+                else if (fileName.endsWith('.xlsx') || fileName.endsWith('.xls')) typeBadge = '<span class="repo-file-type-badge type-excel">Excel</span>';
+                else if (fileName.endsWith('.docx') || fileName.endsWith('.doc')) typeBadge = '<span class="repo-file-type-badge type-word">Word</span>';
+                else if (fileName.endsWith('.zip') || fileName.endsWith('.rar')) typeBadge = '<span class="repo-file-type-badge type-zip">ZIP</span>';
+                else if (fileName.endsWith('.jpg') || fileName.endsWith('.png') || fileName.endsWith('.gif')) typeBadge = '<span class="repo-file-type-badge type-image">Imagen</span>';
+
+                // Badge de almacenamiento
+                let storageBadge = '';
+                if (doc.storage === 'cloudinary' || doc.storage === 'cloudinary_pending') {
+                    storageBadge = `<span class="repo-storage-badge cloud"><i class="fas fa-cloud"></i> Cloud</span>`;
+                } else if (doc.storage === 'drive') {
+                    storageBadge = `<span class="repo-storage-badge drive"><i class="fab fa-google-drive"></i> Drive</span>`;
+                } else if (doc.storage === 'cloudinary_drive') {
+                    storageBadge = `<span class="repo-storage-badge cloud"><i class="fas fa-cloud"></i> Cloud</span> <span class="repo-storage-badge drive"><i class="fab fa-google-drive"></i> Drive</span>`;
+                }
+
+                html += `
+                    <tr class="repo-row" onclick="viewDocument('${doc.id}')" style="cursor: pointer;">
+                        <td><i class="fas ${icon}" style="color: #1a8a9c; margin-right: 8px;"></i> ${doc.nombre || 'Sin título'}</td>
+                        <td>${fecha}</td>
+                        <td>${typeBadge}</td>
+                        <td>${fileSize}</td>
+                        <td>
+                            <div style="display: flex; gap: 4px; flex-wrap: wrap; align-items: center;">
+                                ${storageBadge}
+                                <div class="repo-row-actions" style="display: inline-flex; gap: 2px; margin-left: 4px;">
+                                    <button class="btn btn-danger btn-sm repo-action-btn" onclick="event.stopPropagation(); deleteDocument('${doc.id}')"><i class="fas fa-trash"></i></button>
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
+                `;
+            });
         }
-        
-        folders.forEach(folder => {
-            const fecha = folder.createdAt || 'N/A';
-            const itemsInside = repoDocuments.filter(d => d.parent === folder.id);
-            const fileCount = itemsInside.filter(d => d.esCarpeta !== true).length;
-            const folderCount = itemsInside.filter(d => d.esCarpeta === true).length;
-            html += `
-                <div class="repo-item repo-folder" onclick="navigateToFolder('${folder.id}')">
-                    <div class="repo-item-icon"><i class="fas fa-folder"></i></div>
-                    <div class="repo-item-name">${folder.nombre}</div>
-                    <div class="repo-item-meta">
-                        <i class="fas fa-file"></i> ${fileCount} • 
-                        <i class="fas fa-folder"></i> ${folderCount} • ${fecha}
-                    </div>
-                    <div class="repo-actions">
-                        <button onclick="event.stopPropagation(); deleteDocument('${folder.id}')" class="btn btn-danger btn-sm repo-actions-buttons"><i class="fas fa-trash"></i></button>
-                    </div>
-                </div>
-            `;
-        });
-        
-        files.forEach(doc => {
-            const fecha = doc.createdAt || 'N/A';
-            const iconMap = { 'reporte': 'fa-file-alt', 'resultado_externo': 'fa-file-export', 'manual': 'fa-book', 'procedimiento': 'fa-list-check', 'certificado': 'fa-certificate', 'otro': 'fa-file' };
-            const icon = iconMap[doc.tipo] || 'fa-file';
-            const tipoLabel = doc.tipo ? doc.tipo.replace('_', ' ') : 'Documento';
-            const isCloudinary = doc.storage === 'cloudinary';
-            const isDrive = doc.storage === 'drive';
-            html += `
-                <div class="repo-item repo-file ${isCloudinary ? 'cloudinary' : ''} ${isDrive ? 'drive' : ''}" onclick="viewDocument('${doc.id}')">
-                    <div class="repo-item-icon"><i class="fas ${icon}"></i></div>
-                    <div class="repo-item-name">${doc.nombre || 'Sin título'}</div>
-                    <div class="repo-item-meta">
-                        <span class="repo-tag">${tipoLabel}</span>
-                        ${isCloudinary ? `<span class="repo-cloud-tag">☁️ Cloud</span>` : ''}
-                        ${isDrive ? `<span class="repo-drive-tag">📁 Drive</span>` : ''}
-                        ${doc.fileName ? `• ${doc.fileName.substring(0, 15)}${doc.fileName.length > 15 ? '...' : ''}` : ''}
-                        <br>${fecha} • ${doc.usuario || 'Sistema'}
-                    </div>
-                    <div class="repo-actions">
-                        <button onclick="event.stopPropagation(); viewDocument('${doc.id}')" class="btn btn-primary btn-sm repo-actions-buttons"><i class="fas fa-eye"></i></button>
-                        <button onclick="event.stopPropagation(); deleteDocument('${doc.id}')" class="btn btn-danger btn-sm repo-actions-buttons"><i class="fas fa-trash"></i></button>
-                    </div>
-                </div>
-            `;
-        });
-        
-        html += `</div>`;
+
+        html += `
+                    </tbody>
+                </table>
+            </div>
+        `;
+
         container.innerHTML = html;
         document.getElementById('pageTitle').textContent = 'Repositorio Documental';
-        document.getElementById('pageSubtitle').textContent = `${totalDocs} elementos • ${cloudFiles} en Cloudinary • ${driveFiles} en Google Drive`;
+        document.getElementById('pageSubtitle').textContent = `${archivos.length} documentos • ${carpetas.length} carpetas • ${cloudFiles.length} en Cloudinary • ${driveFiles.length} en Google Drive`;
     }
 
     // ========== NAVEGACIÓN (Se mantiene igual) ==========
