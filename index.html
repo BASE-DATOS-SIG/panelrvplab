@@ -2690,143 +2690,145 @@ async function connectDrive() {
     }
 }
 
-    // 5. Manejar la Redirección de vuelta de Google (PROBLEMA RESUELTO)
 async function handleDriveRedirect() {
-    console.log('🔍 === INICIO handleDriveRedirect ===');
-    console.log('📍 URL actual:', window.location.href);
-    console.log('📌 Redirect URI configurado:', DRIVE_CONFIG.redirectUri);
-    
-    // Obtener la URL actual
-    let currentUrl = window.location.href;
-    
-    // NORMALIZAR: Remover barra final y parámetros
-    currentUrl = currentUrl.split('?')[0];
-    while (currentUrl.endsWith('/')) {
-        currentUrl = currentUrl.slice(0, -1);
-    }
-    
-    // Actualizar la URL en el navegador (para que coincida)
-    if (window.location.href !== currentUrl) {
-        window.history.replaceState({}, document.title, currentUrl);
-        console.log('🔄 URL normalizada:', currentUrl);
-    }
-
-    // Parseamos la URL corregida para obtener los parámetros
-    const urlParams = new URLSearchParams(new URL(window.location.href).search);
-    const code = urlParams.get('code');
-    const state = urlParams.get('state');
-    const error = urlParams.get('error');
-    
-    console.log('📦 Parámetros obtenidos:');
-    console.log('  - code:', code ? '✅ Presente' : '❌ Ausente');
-    console.log('  - state:', state ? '✅ Presente' : '❌ Ausente');
-    console.log('  - error:', error || '✅ Sin errores');
-
-    // ✅ Si hay error, mostrar y salir sin perder sesión
-    if (error) {
-        console.error('❌ Error de Google OAuth:', error);
-        showToast(`⚠️ Error de Google OAuth: ${error}`, true);
-        return;
-    }
-
-    // ✅ Si no hay código, no hacer nada (la sesión sigue activa)
-    if (!code || !state) {
-        console.log('ℹ️ No hay código de autorización, sesión intacta');
-        return;
-    }
-
-    // ✅ Verificar que los parámetros de sesión existen
-    const savedState = sessionStorage.getItem('oauth_state');
-    const codeVerifier = sessionStorage.getItem('pkce_code_verifier');
-    
-    console.log('🔐 Parámetros de sesión:');
-    console.log('  - savedState:', savedState ? '✅ Presente' : '❌ Ausente');
-    console.log('  - codeVerifier:', codeVerifier ? '✅ Presente' : '❌ Ausente');
-
-    // Verificamos el State
-    if (state !== savedState) {
-        console.error('❌ Estado OAuth no coincide (posible CSRF)');
-        console.log('  - state recibido:', state);
-        console.log('  - savedState:', savedState);
-        showToast('⚠️ Error: El estado de la autenticación no coincide', true);
-        return;
-    }
-
-    // Verificamos el Verifier
-    if (!codeVerifier) {
-        console.error('❌ No se encontró el code verifier en sessionStorage');
-        showToast('⚠️ Error: No se pudo verificar la seguridad de la conexión', true);
-        return;
-    }
-
     try {
-        showLoading('Intercambiando código por token...');
+        console.log('🔍 === INICIO handleDriveRedirect ===');
+        console.log('📍 URL actual:', window.location.href);
         
-        console.log('🔄 Enviando solicitud a Google para intercambiar token...');
-        console.log('  - redirect_uri:', DRIVE_CONFIG.redirectUri);
+        // Obtener la URL actual SIN normalizar primero
+        const currentUrl = window.location.href;
         
-        // Enviamos el código a Google para obtener el Access Token
-        const tokenResponse = await fetch('https://oauth2.googleapis.com/token', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-            body: new URLSearchParams({
-                code: code,
-                client_id: DRIVE_CONFIG.clientId,
-                client_secret: DRIVE_CONFIG.clientSecret,
-                redirect_uri: DRIVE_CONFIG.redirectUri,
-                grant_type: 'authorization_code',
-                code_verifier: codeVerifier
-            })
-        });
-
-        const tokenData = await tokenResponse.json();
-        console.log('📨 Respuesta de token:', tokenData);
-
-        if (!tokenResponse.ok) {
-            console.error('❌ Error en respuesta de token:', tokenData);
-            throw new Error(tokenData.error_description || tokenData.error || 'Error al intercambiar el código');
+        // Parsear TODOS los parámetros de la URL
+        const urlParams = new URLSearchParams(window.location.search);
+        const code = urlParams.get('code');
+        const state = urlParams.get('state');
+        const error = urlParams.get('error');
+        
+        console.log('📦 Parámetros obtenidos:');
+        console.log('  - code:', code ? '✅ Presente (primeros 20 chars: ' + code.substring(0, 20) + '...)' : '❌ Ausente');
+        console.log('  - state:', state ? '✅ Presente' : '❌ Ausente');
+        console.log('  - error:', error || '✅ Sin errores');
+        
+        // Si no hay código, salir
+        if (!code || !state) {
+            console.log('ℹ️ No hay código de autorización');
+            return;
         }
-
-        console.log('✅ Token obtenido exitosamente');
-        driveAccessToken = tokenData.access_token;
-        localStorage.setItem('drive_access_token', tokenData.access_token);
         
-        // Obtener información del usuario
+        // Verificar el state (protección CSRF)
+        const savedState = sessionStorage.getItem('oauth_state');
+        const codeVerifier = sessionStorage.getItem('pkce_code_verifier');
+        
+        console.log('🔐 Parámetros de sesión:');
+        console.log('  - savedState:', savedState ? '✅ Presente' : '❌ Ausente');
+        console.log('  - codeVerifier:', codeVerifier ? '✅ Presente (longitud: ' + codeVerifier.length + ')' : '❌ Ausente');
+        
+        if (!savedState || !codeVerifier) {
+            console.error('❌ Faltan parámetros de sesión');
+            showToast('⚠️ Error de autenticación: faltan datos de sesión', true);
+            return;
+        }
+        
+        if (state !== savedState) {
+            console.error('❌ State no coincide (posible CSRF)');
+            console.log('  - state recibido:', state);
+            console.log('  - savedState:', savedState);
+            showToast('⚠️ Error de seguridad: state no coincide', true);
+            return;
+        }
+        
+        // 🔥 IMPORTANTE: Usar el redirect_uri EXACTO que se usó en la solicitud inicial
+        // El redirect_uri debe ser el mismo que se usó para obtener el código
+        const redirectUri = normalizarUrl(DRIVE_CONFIG.redirectUri);
+        console.log('🔄 redirect_uri que se usará:', redirectUri);
+        
+        // Verificar que el redirect_uri coincida con la URL actual
+        const currentBaseUrl = normalizarUrl(window.location.href);
+        console.log('📍 URL base actual:', currentBaseUrl);
+        console.log('✅ Coinciden?', currentBaseUrl === redirectUri ? 'SÍ' : 'NO (¡ESTE ES EL PROBLEMA!)');
+        
+        if (currentBaseUrl !== redirectUri) {
+            console.warn('⚠️ ¡ADVERTENCIA! La URL actual no coincide con redirectUri');
+            console.warn('   Esto puede causar que el intercambio de token falle');
+        }
+        
         try {
-            console.log('👤 Obteniendo información del usuario...');
-            const userResponse = await fetch('https://www.googleapis.com/drive/v3/about?fields=user', {
-                headers: { 'Authorization': `Bearer ${driveAccessToken}` }
+            showLoading('Intercambiando código por token...');
+            
+            console.log('🔄 Enviando solicitud a Google para intercambiar token...');
+            console.log('  - redirect_uri:', redirectUri);
+            
+            const tokenResponse = await fetch('https://oauth2.googleapis.com/token', {
+                method: 'POST',
+                headers: { 
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                    'Accept': 'application/json'
+                },
+                body: new URLSearchParams({
+                    code: code,
+                    client_id: DRIVE_CONFIG.clientId,
+                    client_secret: DRIVE_CONFIG.clientSecret,
+                    redirect_uri: redirectUri,
+                    grant_type: 'authorization_code',
+                    code_verifier: codeVerifier
+                })
             });
-            if (userResponse.ok) {
-                const data = await userResponse.json();
-                driveUserInfo = {
-                    name: data.user.displayName || 'Usuario',
-                    email: data.user.emailAddress || TEST_USER,
-                    id: data.user.id || 'unknown'
-                };
-                console.log('👤 Usuario obtenido:', driveUserInfo.email);
-            } else {
-                console.warn('⚠️ No se pudo obtener información del usuario, usando datos por defecto');
+
+            const tokenData = await tokenResponse.json();
+            console.log('📨 Respuesta de token:', tokenData);
+
+            if (!tokenResponse.ok) {
+                console.error('❌ Error en respuesta de token:', tokenData);
+                let errorMsg = tokenData.error_description || tokenData.error || 'Error al intercambiar el código';
+                throw new Error(errorMsg);
+            }
+
+            console.log('✅ Token obtenido exitosamente');
+            driveAccessToken = tokenData.access_token;
+            localStorage.setItem('drive_access_token', tokenData.access_token);
+            
+            // Obtener información del usuario
+            try {
+                console.log('👤 Obteniendo información del usuario...');
+                const userResponse = await fetch('https://www.googleapis.com/drive/v3/about?fields=user', {
+                    headers: { 'Authorization': `Bearer ${driveAccessToken}` }
+                });
+                if (userResponse.ok) {
+                    const data = await userResponse.json();
+                    driveUserInfo = {
+                        name: data.user.displayName || 'Usuario',
+                        email: data.user.emailAddress || TEST_USER,
+                        id: data.user.id || 'unknown'
+                    };
+                    console.log('👤 Usuario obtenido:', driveUserInfo.email);
+                } else {
+                    console.warn('⚠️ No se pudo obtener información del usuario');
+                    driveUserInfo = { name: 'Usuario de Google Drive', email: TEST_USER, id: 'unknown' };
+                }
+            } catch (e) {
+                console.warn('⚠️ Error obteniendo información del usuario:', e);
                 driveUserInfo = { name: 'Usuario de Google Drive', email: TEST_USER, id: 'unknown' };
             }
-        } catch (e) {
-            console.warn('⚠️ Error obteniendo información del usuario:', e);
-            driveUserInfo = { name: 'Usuario de Google Drive', email: TEST_USER, id: 'unknown' };
+            
+            driveConnected = true;
+            updateDriveUI();
+            showToast(`✅ Conectado a Google Drive como ${driveUserInfo.email}`);
+            console.log('🎉 Conexión exitosa a Google Drive');
+            
+            // Limpiar datos de sesión de OAuth
+            sessionStorage.removeItem('pkce_code_verifier');
+            sessionStorage.removeItem('oauth_state');
+            hideLoading();
+            
+        } catch (error) {
+            console.error('❌ Error intercambiando código por token:', error);
+            showToast(`⚠️ Error: ${error.message}`, true);
+            hideLoading();
         }
         
-        driveConnected = true;
-        updateDriveUI();
-        showToast(`✅ Conectado a Google Drive como ${driveUserInfo.email}`);
-        console.log('🎉 Conexión exitosa a Google Drive');
-        
-        // Limpiar datos de sesión de OAuth
-        sessionStorage.removeItem('pkce_code_verifier');
-        sessionStorage.removeItem('oauth_state');
-        hideLoading();
-        
     } catch (error) {
-        console.error('❌ Error intercambiando código por token:', error);
-        showToast(`⚠️ Error: ${error.message}`, true);
+        console.error('❌ Error en handleDriveRedirect:', error);
+        showToast(`⚠️ Error inesperado: ${error.message}`, true);
         hideLoading();
     }
 }
@@ -4351,26 +4353,111 @@ console.log('✅ 87 Ítems de la Resolución 1619 de 2015 incorporados');
 console.log('☁️ Cloudinary SIEMPRE CONECTADO');
 
 // ==============================================================
-// ========== 🔥 CORRECCIÓN CRÍTICA: PROCESAR REDIRECCIÓN ==========
+// ========== 🔥 PROCESAMIENTO DE REDIRECCIÓN DE GOOGLE ==========
 // ==============================================================
 
-// Verificar si la URL tiene parámetros de redirección de Google
-(function procesarRedireccion() {
+(function procesarRedireccionInmediata() {
+    console.log('🔍 Verificando redirección de Google OAuth...');
+    
     const urlParams = new URLSearchParams(window.location.search);
     const code = urlParams.get('code');
     const state = urlParams.get('state');
     
-    if (code || state) {
-        console.log('🔑 === DETECTADA REDIRECCIÓN DE GOOGLE OAUTH ===');
-        console.log('📍 URL con parámetros:', window.location.href);
-        console.log('📦 code:', code ? '✅ Presente' : '❌ Ausente');
-        console.log('📦 state:', state ? '✅ Presente' : '❌ Ausente');
-        console.log('🔄 Ejecutando handleDriveRedirect()...');
+    console.log('📦 Parámetros en URL:');
+    console.log('  - code:', code ? '✅ Presente' : '❌ Ausente');
+    console.log('  - state:', state ? '✅ Presente' : '❌ Ausente');
+    console.log('  - URL completa:', window.location.href);
+    
+    if (code && state) {
+        console.log('🔑 === REDIRECCIÓN DE GOOGLE DETECTADA ===');
+        console.log('🔄 Ejecutando handleDriveRedirect() inmediatamente...');
+        
+        // Ejecutar inmediatamente
         handleDriveRedirect();
     } else {
         console.log('ℹ️ No hay redirección de Google OAuth');
+        
+        // Verificar si hay un token guardado
+        const token = localStorage.getItem('drive_access_token');
+        if (token) {
+            console.log('🔐 Token guardado encontrado, verificando validez...');
+            // Verificar token automáticamente
+            fetch('https://www.googleapis.com/drive/v3/about?fields=user', {
+                headers: { 'Authorization': `Bearer ${token}` }
+            })
+            .then(response => {
+                if (response.ok) {
+                    driveConnected = true;
+                    driveAccessToken = token;
+                    updateDriveUI();
+                    console.log('✅ Token válido, Drive conectado automáticamente');
+                } else {
+                    localStorage.removeItem('drive_access_token');
+                    console.log('⚠️ Token inválido, eliminado');
+                }
+            })
+            .catch(() => {
+                localStorage.removeItem('drive_access_token');
+                console.log('⚠️ Error verificando token, eliminado');
+            });
+        }
     }
+
+function forzarConexionDrive() {
+    console.log('🔄 VERIFICANDO CONEXIÓN A DRIVE...');
+    
+    // 1. Verificar si hay token guardado
+    const token = localStorage.getItem('drive_access_token');
+    if (token) {
+        console.log('🔐 Token guardado encontrado');
+        fetch('https://www.googleapis.com/drive/v3/about?fields=user', {
+            headers: { 'Authorization': `Bearer ${token}` }
+        })
+        .then(response => {
+            if (response.ok) {
+                driveConnected = true;
+                driveAccessToken = token;
+                updateDriveUI();
+                showToast('✅ Google Drive conectado automáticamente');
+                console.log('✅ Conexión exitosa con token guardado');
+            } else {
+                localStorage.removeItem('drive_access_token');
+                console.log('⚠️ Token inválido');
+                // Intentar reconectar si hay código en URL
+                const urlParams = new URLSearchParams(window.location.search);
+                const code = urlParams.get('code');
+                if (code) {
+                    console.log('🔑 Código encontrado, procesando...');
+                    handleDriveRedirect();
+                }
+            }
+        })
+        .catch(() => {
+            console.log('⚠️ Error verificando token');
+        });
+        return;
+    }
+    
+    // 2. Verificar si hay código en la URL
+    const urlParams = new URLSearchParams(window.location.search);
+    const code = urlParams.get('code');
+    const state = urlParams.get('state');
+    
+    if (code && state) {
+        console.log('🔑 Código y state encontrados en URL');
+        console.log('📦 code:', code.substring(0, 20) + '...');
+        console.log('📦 state:', state);
+        console.log('🔄 Procesando redirección...');
+        handleDriveRedirect();
+    } else {
+        console.log('ℹ️ No hay token ni código en URL');
+        console.log('   Para conectar, haz clic en "Conectar Drive"');
+    }
+}
+
 })();
+
+console.log('🚀 Aplicación cargada completamente');
 </script>
 </body>
 </html>
