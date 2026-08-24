@@ -1934,6 +1934,56 @@ table .codigo {
     font-size: 0.95rem;
 }
 
+/* ============================================================== */
+/* ========== AJUSTE DE COLUMNAS DE REPOSITORIO ========== */
+/* ============================================================== */
+
+.repo-table th:nth-child(1),
+.repo-table td:nth-child(1) { 
+    width: 35%; 
+    min-width: 180px;
+}
+
+.repo-table th:nth-child(2),
+.repo-table td:nth-child(2) { 
+    width: 25%; 
+    min-width: 140px;
+}
+
+.repo-table th:nth-child(3),
+.repo-table td:nth-child(3) { 
+    width: 15%; 
+    min-width: 80px;
+}
+
+.repo-table th:nth-child(4),
+.repo-table td:nth-child(4) { 
+    width: 10%; 
+    min-width: 60px;
+}
+
+.repo-table th:nth-child(5),
+.repo-table td:nth-child(5) { 
+    width: 15%; 
+    min-width: 100px;
+}
+
+/* Para móviles */
+@media (max-width: 768px) {
+    .repo-table th:nth-child(2),
+    .repo-table td:nth-child(2),
+    .repo-table th:nth-child(3),
+    .repo-table td:nth-child(3) {
+        display: none;
+    }
+    .repo-table th:nth-child(1),
+    .repo-table td:nth-child(1) { width: 50%; }
+    .repo-table th:nth-child(4),
+    .repo-table td:nth-child(4) { width: 20%; }
+    .repo-table th:nth-child(5),
+    .repo-table td:nth-child(5) { width: 30%; }
+}
+    
 /* Responsive */
 @media (max-width: 768px) {
     .repo-stats-panel {
