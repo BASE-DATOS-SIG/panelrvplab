@@ -2193,12 +2193,12 @@ table .codigo {
         </div>
     </nav>
     
-    <div class="sidebar-footer">
-        <div class="flex align-center justify-between">
-            <span>👤 <span id="userNameDisplay">Analista</span></span>
-            <button class="btn-outline-secondary" onclick="logout()">Salir</button>
-        </div>
+<div class="sidebar-footer">
+    <div class="flex align-center justify-between" id="footerUserInfo">
+        <span id="footerUserSpan">👤 <span id="userNameDisplay">Analista</span></span>
+        <button class="btn-outline-secondary" onclick="logout()">Salir</button>
     </div>
+</div>
 </aside>
 
 <!-- MAIN CONTENT -->
@@ -2441,20 +2441,20 @@ table .codigo {
 const USUARIOS_CONFIG = {
     'RVPLAB': {
         password: 'Lab#2026.',
-        nombre: 'Analista de Laboratorio',
-        rol: 'LABORATORIO',
+        nombre: 'USER-LAB',
+        rol: 'Profesional LAB',
         icon: '🧪'
     },
     'APOYOLAB': {
         password: 'Apoyo#2026.',
-        nombre: 'Apoyo Laboratorio',
-        rol: 'COORDINACIÓN',
+        nombre: 'USER-LAB',
+        rol: 'Apoyo LAB',
         icon: '📋'
     },
     'UNIDADLABRVP': {
         password: 'Unidad#2026.',
-        nombre: 'Administrador del Sistema',
-        rol: 'ADMINISTRADOR',
+        nombre: 'ADMIN-LAB',
+        rol: 'Profesional SIG',
         icon: '⚙️'
     },
 };
@@ -2542,26 +2542,22 @@ function actualizarUIUsuario(nombre, rol) {
     const roleBadge = document.querySelector('.user-badge .role');
     if (roleBadge) {
         roleBadge.textContent = rol;
-        // Color según el rol
         const colors = {
-            'LABORATORIO': '#1a8a9c',
-            'COORDINACIÓN': '#d97706',
-            'ADMINISTRADOR': '#dc2626'
+            'Profesional LAB': '#1a8a9c',
+            'Apoyo LAB': '#d97706',
+            'Profesional SIG': '#dc2626'
         };
         roleBadge.style.background = colors[rol] || '#1a8a9c';
         roleBadge.style.color = 'white';
     }
     
-    // Sidebar footer - nombre del usuario
-    document.getElementById('userNameDisplay').textContent = nombre;
-    
-    // Sidebar footer - mostrar rol
-    const footerUserDiv = document.querySelector('.sidebar-footer .flex span');
-    if (footerUserDiv) {
-        footerUserDiv.innerHTML = `👤 ${nombre} <span style="font-size:0.6rem; background:rgba(79,195,247,0.2); padding:0.1rem 0.5rem; border-radius:10px; margin-left:0.3rem;">${rol}</span>`;
+    // ✅ ACTUALIZAR EL SIDEBAR FOOTER - SOLO EL CONTENIDO
+    const userSpan = document.getElementById('footerUserSpan');
+    if (userSpan) {
+        userSpan.innerHTML = `👤 ${nombre} <span style="font-size:0.6rem; background:rgba(79,195,247,0.2); padding:0.1rem 0.5rem; border-radius:10px; margin-left:0.3rem;">${rol}</span>`;
     }
     
-    // Actualizar variables globales
+    // Actualizar variable global
     currentUser = nombre;
     currentUserRole = rol;
 }
@@ -2810,18 +2806,18 @@ function login() {
     const usuarios = USUARIOS_CONFIG || {
         'RVPLAB': {
             password: 'Lab#2026.',
-            nombre: 'Analista de Laboratorio',
-            rol: 'LABORATORIO'
+            nombre: 'USER-LAB',
+            rol: 'Profesional LAB'
         },
         'APOYOLAB': {
             password: 'Apoyo#2026.',
-            nombre: 'Apoyo Laboratorio',
-            rol: 'COORDINACIÓN'
+            nombre: 'USER-LAB',
+            rol: 'Apoyo LAB'
         },
         'UNIDADLABRVP': {
             password: 'Unidad#2026.',
-            nombre: 'Administrador del Sistema',
-            rol: 'ADMINISTRADOR'
+            nombre: 'ADMIN-LAB',
+            rol: 'Profesional SIG'
         },
     };
     
@@ -2888,36 +2884,6 @@ function logout() {
     }
 }
 
-// ✅ NUEVA FUNCIÓN PARA ACTUALIZAR LA UI CON EL USUARIO
-function actualizarUIUsuario(nombre, rol) {
-    // Badge de usuario en el header
-    document.getElementById('userNameBadge').textContent = nombre;
-    const userBadge = document.querySelector('.user-badge .role');
-    if (userBadge) {
-        userBadge.textContent = rol;
-        // Color según el rol
-        const colors = {
-            'LABORATORIO': '#1a8a9c',
-            'COORDINACIÓN': '#d97706',
-            'ADMINISTRADOR': '#dc2626'
-        };
-        userBadge.style.background = colors[rol] || '#1a8a9c';
-        userBadge.style.color = 'white';
-    }
-    
-    // Sidebar footer
-    document.getElementById('userNameDisplay').textContent = nombre;
-    
-    // Mostrar rol en el sidebar footer
-    const footerUserDiv = document.querySelector('.sidebar-footer .flex span');
-    if (footerUserDiv) {
-        footerUserDiv.innerHTML = `👤 ${nombre} <span style="font-size:0.6rem; background:rgba(79,195,247,0.2); padding:0.1rem 0.5rem; border-radius:10px; margin-left:0.3rem;">${rol}</span>`;
-    }
-    
-    // Actualizar variable global
-    currentUser = nombre;
-    currentUserRole = rol;
-}
 
     function updateDriveUI() {
         const badge = document.getElementById('driveStatusBadge');
