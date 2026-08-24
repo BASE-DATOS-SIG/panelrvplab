@@ -2664,9 +2664,33 @@ function login() {
     const pass = document.getElementById('loginPass').value;
     const errorDiv = document.getElementById('loginError');
     
-    if (user === 'analista' && pass === 'lab2025') {
-        currentUser = 'Analista de Laboratorio';
-        
+// ============================================
+    // 📋 LISTA DE USUARIOS AUTORIZADOS
+    // ============================================
+    const usuarios = {
+        'RVPLAB': {
+            password: 'Lab#2026.',
+            nombre: 'Analista de Laboratorio',
+            rol: 'LABORATORIO'
+        },
+        'APOYOLAB': {
+            password: 'Apoyo#2026.',
+            nombre: 'Apoyo Laboratorio',
+            rol: 'COORDINACIÓN'
+        },
+        'UNIDADLABRVP': {
+            password: '',
+            nombre: 'Administrador del Sistema',
+            rol: 'ADMINISTRADOR'
+        },
+    };
+    
+    // Verificar si el usuario existe y la contraseña es correcta
+    if (usuarios[user] && usuarios[user].password === pass) {
+        // Obtener los datos del usuario
+        const usuarioData = usuarios[user];
+        currentUser = usuarioData.nombre;
+
         // ✅ GUARDAR LA SESIÓN
         guardarSesion(currentUser);
         
@@ -2696,6 +2720,38 @@ function logout() {
         showToast('🔒 Sesión cerrada');
     }
 }
+
+// ✅ NUEVA FUNCIÓN PARA ACTUALIZAR LA UI CON EL USUARIO
+function actualizarUIUsuario(nombre, rol) {
+    // Badge de usuario en el header
+    document.getElementById('userNameBadge').textContent = nombre;
+    const userBadge = document.querySelector('.user-badge .role');
+    if (userBadge) {
+        userBadge.textContent = rol;
+        // Color según el rol
+        const colors = {
+            'LABORATORIO': '#1a8a9c',
+            'COORDINACIÓN': '#d97706',
+            'ADMINISTRADOR': '#dc2626'
+        };
+        userBadge.style.background = colors[rol] || '#1a8a9c';
+        userBadge.style.color = 'white';
+    }
+    
+    // Sidebar footer
+    document.getElementById('userNameDisplay').textContent = nombre;
+    
+    // Mostrar rol en el sidebar footer
+    const footerUserDiv = document.querySelector('.sidebar-footer .flex span');
+    if (footerUserDiv) {
+        footerUserDiv.innerHTML = `👤 ${nombre} <span style="font-size:0.6rem; background:rgba(79,195,247,0.2); padding:0.1rem 0.5rem; border-radius:10px; margin-left:0.3rem;">${rol}</span>`;
+    }
+    
+    // Actualizar variable global
+    currentUser = nombre;
+    currentUserRole = rol;
+}
+
     function updateDriveUI() {
         const badge = document.getElementById('driveStatusBadge');
         const btn = document.getElementById('driveAuthBtn');
@@ -3162,7 +3218,7 @@ function diagnosticarDrive() {
         });
     }
 
-// ========== INICIALIZACIÓN (ACTUALIZADA) ==========
+// ✅ MODIFICAR initApp
 function initApp() {
     loadData();
     loadRepoDocuments();
@@ -3173,13 +3229,13 @@ function initApp() {
     setupRepoHandlers();
     setupFolderHandlers();
     
-    // ✅ VERIFICAR SESIÓN ANTES DE PROCESAR DRIVE
-    const sesionUsuario = obtenerSesion();
-    if (sesionUsuario) {
-        currentUser = sesionUsuario;
-        document.getElementById('userNameDisplay').textContent = 'Analista';
-        document.getElementById('userNameBadge').textContent = 'Analista';
-        console.log('✅ Sesión restaurada:', currentUser);
+    // ✅ RESTAURAR SESIÓN CON ROL
+    const sesion = obtenerSesion();
+    if (sesion) {
+        currentUser = sesion.usuario;
+        currentUserRole = sesion.rol || 'LABORATORIO';
+        actualizarUIUsuario(currentUser, currentUserRole);
+        console.log('✅ Sesión restaurada:', currentUser, '(', currentUserRole, ')');
     }
     
     // Verificar si hay token guardado
@@ -3209,25 +3265,22 @@ function initApp() {
         });
     }
     
-    // Llamada crítica: procesar la redirección de Google Drive al cargar la página
     handleDriveRedirect();
 }
 
-// ========== INICIALIZACIÓN PRINCIPAL (MODIFICADA) ==========
-// Esta función se ejecuta al cargar la página
+// ✅ MODIFICAR iniciarAplicacion
 function iniciarAplicacion() {
-    // Verificar si hay sesión activa
-    const sesionUsuario = obtenerSesion();
+    const sesion = obtenerSesion();
     
-    if (sesionUsuario) {
+    if (sesion) {
         // ✅ Usuario ya autenticado - mostrar la aplicación
-        currentUser = sesionUsuario;
+        currentUser = sesion.usuario;
+        currentUserRole = sesion.rol || 'LABORATORIO';
         document.getElementById('loginOverlay').style.display = 'none';
         document.getElementById('mainApp').style.display = 'block';
-        document.getElementById('userNameDisplay').textContent = 'Analista';
-        document.getElementById('userNameBadge').textContent = 'Analista';
+        actualizarUIUsuario(currentUser, currentUserRole);
         initApp();
-        console.log('✅ Sesión restaurada automáticamente');
+        console.log(`✅ Sesión restaurada automáticamente: ${currentUser} (${currentUserRole})`);
     } else {
         // ❌ No hay sesión - mostrar login
         document.getElementById('loginOverlay').style.display = 'flex';
